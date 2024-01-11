@@ -1,54 +1,52 @@
-#include <iostream>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <cstring>
+#include "Server.hpp"
 
-int main() 
+Server::Server(int port, std::string pw, std::string name)
+:_name(name), _pw(pw), _port(port), _pollfd(0), _sockfd(0)
 {
-    int server_fd, new_socket;
-    struct sockaddr_in address;
-    int opt = 1;
-    int addrlen = sizeof(address);
-    char buffer[1024] = {0};
-    const int PORT = 8080;
+	// socket creation
+	try 
+	{
+		_createSocket();
+		_bindSocket();
+		    // Accepting a connection
+		int new_socket;
+		socklen_t socklen = sizeof(_serverAddr);
+   		if ((new_socket = accept(_sockfd, (struct sockaddr *)&_serverAddr, &socklen)) < 0)
+		{
+        	perror("accept");
+        	exit(EXIT_FAILURE);
+    	}
+		char *buffer = NULL;
+    	// Reading message from client
+    	read(new_socket, buffer, 1024);
+    	std::cout << "Message from client: " << buffer << std::endl;
 
-    // Creating socket file descriptor
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
-    }
+    	// Closing the connection
+    	close(new_socket);
+    	close(_sockfd);
+		(void)_pollfd;
+	}
+	catch (std::exception &e) {}
+}
 
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
+void    Server::_bindSocket()
+{
+    _serverAddr.sin_family = AF_INET; // host byte order
+    _serverAddr.sin_port = htons(_port);
+    _serverAddr.sin_addr.s_addr = INADDR_ANY;
+    memset(&(_serverAddr.sin_zero), 0, 8); // fill remaining space with 0
+    if (bind(_sockfd, (struct sockaddr *)&_serverAddr, sizeof(_serverAddr)) == -1)
+        throw std::exception();
+    // mark the socket as listening and set a max connections (backlog)
+    if (listen(_sockfd, MAX_CLIENTS) == -1)
+        throw std::exception();
+}
 
-    // Binding the socket to the port 8080
-    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
-
-    // Listening for connections
-    if (listen(server_fd, 3) < 0) {
-        perror("listen");
-        exit(EXIT_FAILURE);
-    }
-
-    // Accepting a connection
-    if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
-        perror("accept");
-        exit(EXIT_FAILURE);
-    }
-
-    // Reading message from client
-    read(new_socket, buffer, 1024);
-    std::cout << "Message from client: " << buffer << std::endl;
-
-    // Closing the connection
-    close(new_socket);
-    close(server_fd);
-
-    return 0;
+void Server::_createSocket()
+{
+	_sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (_sockfd == -1)
+        throw std::exception();
+	//  if (fcntl(_sockfd, F_SETFL, O_NONBLOCK) == -1)
+    //     throw std::exception();
 }
