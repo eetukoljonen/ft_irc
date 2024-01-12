@@ -1,6 +1,6 @@
 NAME := ircserv
 CC := c++
-COMPILE_FLAGS := -Wall -Wextra -Werror
+COMPILE_FLAGS := -Wall -Wextra -Werror -std=c++11 -g
 SRC := main.cpp Server.cpp
 OBJ := $(SRC:.cpp=.o)
 
