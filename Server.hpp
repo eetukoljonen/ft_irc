@@ -10,6 +10,7 @@
 #include <cstring>
 #include <iostream>
 #include <fcntl.h>
+#include <poll.h>
 
 class Server
 {
@@ -21,12 +22,14 @@ class Server
 		std::string _name;
 		std::string _pw;
 		int 		_port;
-		int 		_pollfd;
         int 		_sockfd;
+		
 		struct sockaddr_in _serverAddr;
+		struct pollfd _pollfds[MAX_CLIENTS];
 		
 		void _bindSocket();
 		void _createSocket();
+		void _createPoll();
 };
 
 #endif
