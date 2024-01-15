@@ -59,7 +59,8 @@ int main()
 				break ;
 			}
 			// display response
-			std::cout << "SERVER> " << std::string(buf, bytesReceived) << std::endl;
+			if (bytesReceived)
+				std::cout << "SERVER> " << std::string(buf, bytesReceived) << std::endl;
 	}
 	// close socket
 	close(soc);
