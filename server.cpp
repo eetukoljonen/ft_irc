@@ -1,4 +1,33 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/01/15 14:59:36 by ekoljone          #+#    #+#             */
+/*   Updated: 2024/01/15 17:06:24 by ekoljone         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Server.hpp"
+
+void Server::_acceptClient()
+{
+	User newUser;
+	newUser.getUserInfo().fd = accept(_listeningSocket,
+									(struct sockaddr *)&newUser.getUserInfo().addr,
+									&newUser.getUserInfo().addrLen);
+	fcntl(_client.fd, F_SETFL, O_NONBLOCK);
+	if (newUser.getUserInfo().fd == -1)
+		perror("accept");
+	else if (newUser.getUserInfo().fd)
+	{
+		_addPollFd(newUser.getUserInfo().fd);
+		std::cout << "new connection: " << std::string(inet_ntoa(newUser.getUserInfo().addr.sin_addr), 0, INET_ADDRSTRLEN + 1) << std::endl;
+		_usersMap[newUser.getUserInfo().fd] = newUser;
+	}
+}
 
 void Server::_runServer()
 {    	
@@ -15,16 +44,8 @@ void Server::_runServer()
 		{
 			if (_pollfds[i].fd == _listeningSocket) 
 			{
-				_client.fd = accept(_pollfds[0].fd, (struct sockaddr *)&_client.addr, &_client.addrLen);
-				fcntl(_client.fd, F_SETFL, O_NONBLOCK);
-				if (_client.fd == -1)
-					perror("accept");
-				else if (_client.fd)
-				{
-					_addPollFd(_client.fd);
-					std::cout << "new connection" << std::endl;
-				}
-			}./
+				_acceptClient();
+			}
 			else if (_pollfds[i].revents & (POLLIN))
 			{
 				char buf[512];
@@ -43,12 +64,30 @@ void Server::_runServer()
 				else
 				{
 					std::cout << std::string(buf, 0, nbytes) << std::endl;
+					_usersMap.find(_pollfds[i].fd)->second.newMessage(std::string(buf, 0, nbytes));
 				}
 			}
-			if (_pollfds[i].revents & POLLIN)
-					std::cout << "pollin" << std::endl;
-			if (_pollfds[i].revents & POLLOUT)
-					std::cout << "pollout" << std::endl << std::endl;
+			else if (_pollfds[i].revents & POLLOUT)
+			{
+				for (size_t j = 1; j < numFds && i > 0; j++)
+				{
+					if (j != i)
+					{
+						std::string msg(_usersMap.find(_pollfds[j].fd)->second.getMessage());
+						std::cout << msg << std::endl;
+						if (!msg.empty())
+						{
+							int nbytes = send(_pollfds[i].fd, msg.c_str(), msg.size() + 1, 0);
+							if (nbytes == -1)
+								perror("send");
+						}
+					}
+				}
+			}
+			// if (_pollfds[i].revents & POLLIN)
+			// 		std::cout << "pollin" << std::endl;
+			// if (_pollfds[i].revents & POLLOUT)
+			// 		std::cout << "pollout" << std::endl << std::endl;
 			//send
 			//error (POLLNVAL, POLLERR, POLLHUP)
 		}

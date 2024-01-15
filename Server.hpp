@@ -12,14 +12,10 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <vector>
+#include <map>
 #include <string.h>
-
-typedef struct s_client
-{
-	int					fd;
-	struct sockaddr_in	addr;
-	socklen_t			addrLen = sizeof(addr);
-}	t_client;
+#include <arpa/inet.h>
+#include "User.hpp"
 
 class Server
 {
@@ -34,12 +30,15 @@ class Server
         int 						_listeningSocket;
 		struct sockaddr_in			_serverAddr;
 		std::vector<struct pollfd>	_pollfds;
+		std::map<int, User>			_usersMap;
 		t_client					_client;
 		
-		void _runServer();
-		void _bindSocket();
-		void _createSocket();
-		void _addPollFd(int fd);
+		void	_runServer();
+		void	_bindSocket();
+		void	_createSocket();
+		void	_addPollFd(int fd);
+		void	_acceptClient();
+
 };
 
 #endif

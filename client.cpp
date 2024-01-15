@@ -44,25 +44,22 @@ int main()
 		int sendResult = send(soc, userInput.c_str(), userInput.size() + 1, 0);
 		if (sendResult == -1)
 			std::cout << "send error" << std::endl;
-		int bytesReceived = recv(soc, buf, 4096, MSG_DONTWAIT);
-		// else
-		// {
-		// 	// wait for response
-		// 	memset(buf, 0, 4096);
-		// 	int bytesReceived = recv(soc, buf, 4096, 0);
-		// 	if (bytesReceived == -1)
-		// 	{
-		// 		std::cerr << "connection issue" << std::endl;
-		// 		break ;
-		// 	}
-		// 	if (bytesReceived == 0)
-		// 	{
-		// 		std::cout << "server disconnected" << std::endl;
-		// 		break ;
-		// 	}
-		// 	// display response
-		// 	std::cout << "SERVER> " << std::string(buf, bytesReceived) << std::endl;
-		// }
+
+			// wait for response
+			memset(buf, 0, 4096);
+			int bytesReceived = recv(soc, buf, 4096, 0);
+			if (bytesReceived == -1)
+			{
+				std::cerr << "connection issue" << std::endl;
+				break ;
+			}
+			if (bytesReceived == 0)
+			{
+				std::cout << "server disconnected" << std::endl;
+				break ;
+			}
+			// display response
+			std::cout << "SERVER> " << std::string(buf, bytesReceived) << std::endl;
 	}
 	// close socket
 	close(soc);
