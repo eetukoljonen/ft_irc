@@ -24,7 +24,7 @@ void Server::_runServer()
 					_addPollFd(_client.fd);
 					std::cout << "new connection" << std::endl;
 				}
-			}./
+			}
 			else if (_pollfds[i].revents & (POLLIN))
 			{
 				char buf[512];
