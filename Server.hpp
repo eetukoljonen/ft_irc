@@ -15,6 +15,7 @@
 #include <map>
 #include <string.h>
 #include <arpa/inet.h>
+#include <fstream>
 #include "User.hpp"
 
 class Server
@@ -38,7 +39,7 @@ class Server
 		void	_createSocket();
 		void	_addPollFd(int fd);
 		void	_acceptClient();
-
+		void	_receiveMessage(int index);
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/15 15:38:59 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/16 16:43:05 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,14 +42,14 @@ public:
     User(User const &cpy);
     ~User();
     User &operator=(User const &rhs);
-	int							newMessage(std::string const &msg);
+	int							appendInput(std::string const &input);
 	std::string const			getMessage();
 	t_client 					&getUserInfo();
 private:
 	std::string					_name;
 	std::string					_ipAddr;
 	t_client					_userInfo;
-	std::vector<std::string>	_messages;
+	std::vector<std::string>	_userInput;
 };
 
 #endif

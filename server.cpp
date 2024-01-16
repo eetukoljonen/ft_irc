@@ -6,11 +6,33 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:59:36 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/15 18:19:05 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/16 16:43:16 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+
+void Server::_receiveMessage(int index)
+{
+	char buf[512];
+	memset(buf, '\0', 512);
+	int nbytes = recv(_pollfds[index].fd, buf, 512, MSG_DONTWAIT);
+	if (nbytes == 0)
+	{
+		std::cout << _pollfds[index].fd << " disconnected" << std::endl;
+		close(_pollfds[index].fd);
+		_pollfds.erase(_pollfds.begin() + index);
+	}
+	else if (nbytes == -1)
+	{
+		perror("recv");
+	}
+	else
+	{
+		std::cout << std::string(buf, 0, nbytes) << std::endl;
+		_usersMap.find(_pollfds[i].fd)->second.appendInput(std::string(buf, 0, nbytes));
+	}
+}
 
 void Server::_acceptClient()
 {
@@ -40,50 +62,33 @@ void Server::_runServer()
 	}
     for (size_t i = 0; i < numFds; ++i) 
 	{
-		if (_pollfds[i].revents & (POLLIN | POLLOUT | POLLNVAL | POLLERR | POLLHUP))
+		if (_pollfds[i].revents & POLLIN)
 		{
 			if (_pollfds[i].fd == _listeningSocket) 
-			{
 				_acceptClient();
-			}
-			else if (_pollfds[i].revents & (POLLIN))
+			else
+				_receiveMessage(i);
+		}
+		else if (_pollfds[i].revents & POLLOUT)
+		{
+			for (size_t j = 1; j < numFds && i > 0; j++)
 			{
-				char buf[512];
-				memset(buf, '\0', 512);
-				int nbytes = recv(_pollfds[i].fd, buf, 512, MSG_DONTWAIT);
-				if (nbytes == 0)
+				if (j != i)
 				{
-					std::cout << _pollfds[i].fd << " disconnected" << std::endl;
-					close(_pollfds[i].fd);
-					_pollfds.erase(_pollfds.begin() + i);
-				}
-				else if (nbytes == -1)
-				{
-					perror("recv");
-				}
-				else
-				{
-					std::cout << std::string(buf, 0, nbytes) << std::endl;
-					_usersMap.find(_pollfds[i].fd)->second.newMessage(std::string(buf, 0, nbytes));
-				}
-			}
-			else if (_pollfds[i].revents & POLLOUT)
-			{
-				for (size_t j = 1; j < numFds && i > 0; j++)
-				{
-					if (j != i)
+					std::string msg(_usersMap.find(_pollfds[j].fd)->second.getMessage());
+					std::cout << msg << std::endl;
+					if (!msg.empty())
 					{
-						std::string msg(_usersMap.find(_pollfds[j].fd)->second.getMessage());
-						std::cout << msg << std::endl;
-						if (!msg.empty())
-						{
-							int nbytes = send(_pollfds[i].fd, msg.c_str(), msg.size() + 1, 0);
-							if (nbytes == -1)
-								perror("send");
-						}
+						int nbytes = send(_pollfds[i].fd, msg.c_str(), msg.size() + 1, 0);
+						if (nbytes == -1)
+							perror("send");
 					}
 				}
 			}
+			// else if (_pollfds[i].revents & (POLLNVAL | POLLERR | POLLHUP))
+			// {
+
+			// }
 			// if (_pollfds[i].revents & POLLIN)
 			// 		std::cout << "pollin" << std::endl;
 			// if (_pollfds[i].revents & POLLOUT)
