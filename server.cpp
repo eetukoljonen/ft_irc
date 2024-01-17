@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:59:36 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/16 16:43:16 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/17 17:16:46 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,24 +30,28 @@ void Server::_receiveMessage(int index)
 	else
 	{
 		std::cout << std::string(buf, 0, nbytes) << std::endl;
-		_usersMap.find(_pollfds[i].fd)->second.appendInput(std::string(buf, 0, nbytes));
+		std::cout << "fd = " << _usersMap.find(_pollfds[index].fd)->second->getUserInfo().fd << std::endl;
+		_usersMap.find(_pollfds[index].fd)->second->appendInput(std::string(buf, 0, nbytes));
 	}
 }
 
 void Server::_acceptClient()
 {
-	User newUser;
-	newUser.getUserInfo().fd = accept(_listeningSocket,
-									(struct sockaddr *)&newUser.getUserInfo().addr,
-									&newUser.getUserInfo().addrLen);
-	fcntl(_client.fd, F_SETFL, O_NONBLOCK);
-	if (newUser.getUserInfo().fd == -1)
-		perror("accept");
-	else if (newUser.getUserInfo().fd)
+	User *newUser = new User;
+	newUser->getUserInfo().fd = accept(_listeningSocket,
+									(struct sockaddr *)&newUser->getUserInfo().addr,
+									&newUser->getUserInfo().addrLen);
+	fcntl(newUser->getUserInfo().fd, F_SETFL, O_NONBLOCK);
+	if (newUser->getUserInfo().fd == -1)
 	{
-		_addPollFd(newUser.getUserInfo().fd);
-		std::cout << "new connection: " << std::string(inet_ntoa(newUser.getUserInfo().addr.sin_addr), 0, INET_ADDRSTRLEN + 1) << std::endl;
-		_usersMap[newUser.getUserInfo().fd] = newUser;
+		delete newUser;
+		perror("accept");
+	}
+	else if (newUser->getUserInfo().fd)
+	{
+		_addPollFd(newUser->getUserInfo().fd);
+		std::cout << "new connection: " << std::string(inet_ntoa(newUser->getUserInfo().addr.sin_addr), 0, INET_ADDRSTRLEN + 1) << std::endl;
+		_usersMap[newUser->getUserInfo().fd] = newUser;
 	}
 }
 
@@ -69,39 +73,16 @@ void Server::_runServer()
 			else
 				_receiveMessage(i);
 		}
-		else if (_pollfds[i].revents & POLLOUT)
-		{
-			for (size_t j = 1; j < numFds && i > 0; j++)
-			{
-				if (j != i)
-				{
-					std::string msg(_usersMap.find(_pollfds[j].fd)->second.getMessage());
-					std::cout << msg << std::endl;
-					if (!msg.empty())
-					{
-						int nbytes = send(_pollfds[i].fd, msg.c_str(), msg.size() + 1, 0);
-						if (nbytes == -1)
-							perror("send");
-					}
-				}
-			}
-			// else if (_pollfds[i].revents & (POLLNVAL | POLLERR | POLLHUP))
-			// {
-
-			// }
-			// if (_pollfds[i].revents & POLLIN)
-			// 		std::cout << "pollin" << std::endl;
-			// if (_pollfds[i].revents & POLLOUT)
-			// 		std::cout << "pollout" << std::endl << std::endl;
-			//send
-			//error (POLLNVAL, POLLERR, POLLHUP)
-		}
     }
 }
 
 Server::Server(int port, std::string pw, std::string name)
 :_name(name), _pw(pw), _port(port), _listeningSocket(0)
 {
+	// std::string test1 = "PRIVMSG #example_channel :Hello, this is a     regular message in a channel! \r\n";
+
+	// User testman;
+	// testman.appendInput(test1);
 	try 
 	{
 		_createSocket();

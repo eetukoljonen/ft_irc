@@ -31,7 +31,7 @@ class Server
         int 						_listeningSocket;
 		struct sockaddr_in			_serverAddr;
 		std::vector<struct pollfd>	_pollfds;
-		std::map<int, User>			_usersMap;
+		std::map<int, User *>		_usersMap;
 		t_client					_client;
 		
 		void	_runServer();

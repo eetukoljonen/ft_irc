@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/16 16:43:05 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/17 16:08:31 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,17 @@
 #include <map>
 #include <string.h>
 #include <arpa/inet.h>
+#include <sstream>
 #include <iostream>
 #include <vector>
+
+
+typedef struct s_command
+{
+	std::string					prefix;
+	std::string					command;
+	std::vector<std::string>	params;
+}	t_command;
 
 typedef struct s_client
 {
@@ -42,8 +51,9 @@ public:
     User(User const &cpy);
     ~User();
     User &operator=(User const &rhs);
-	int							appendInput(std::string const &input);
-	std::string const			getMessage();
+	t_command					*extractCommand();
+	int							appendInput(std::string input);
+	std::string const			extractInput();
 	t_client 					&getUserInfo();
 private:
 	std::string					_name;
