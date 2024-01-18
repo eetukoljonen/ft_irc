@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/18 16:26:53 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/18 17:06:38 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,10 @@ CommandExecution &CommandExecution::operator=(CommandExecution const &rhs)
 void CommandExecution::execute(User &user, Server &server)
 {
 	(void)server;
-    t_command *userCommand = user.extractCommand();
+	std::string input = user.extractInput();
+	if (input.empty())
+		return ;
+	Command cmd(input);
     
 	std::string	Cmds[2] = {
 		//"INVITE",
@@ -69,10 +72,10 @@ void CommandExecution::execute(User &user, Server &server)
     };
     
     int i = 0;
-
+	std::string userCommand = cmd.getCommand();
     while (!Cmds[i].empty())
     {
-        if (userCommand->command.compare(Cmds[i]))
+        if (userCommand.compare(Cmds[i]))
             break;
         i++;
     }

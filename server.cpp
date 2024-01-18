@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:59:36 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/18 16:25:06 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/18 17:04:25 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ void Server::_receiveMessage(int index)
 	{
 		std::cout << std::string(buf, 0, nbytes) << std::endl;
 		std::cout << "fd = " << _usersMap.find(_pollfds[index].fd)->second->getUserInfo().fd << std::endl;
-		_usersMap.find(_pollfds[index].fd)->second->appendInput(std::string(buf, 0, nbytes));
+		_usersMap.find(_pollfds[index].fd)->second->addToInputBuffer(std::string(buf, 0, nbytes));
 	}
 }
 
