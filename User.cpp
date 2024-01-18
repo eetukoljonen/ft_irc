@@ -93,10 +93,10 @@ void addToInputBuffer(std::vector<std::string> &buf, std::string const &str)
 int User::appendInput(std::string msg)
 {
 	std::string cmd(msg);
-	while (msg.find("\r\n") != std::string::npos)
+	while (msg.find("\n") != std::string::npos)
 	{
-		cmd = msg.substr(0, msg.find("\n") + 2);
-		msg.erase(0, msg.find("\n") + 2);
+		cmd = msg.substr(0, msg.find("\n") + 1);
+		msg.erase(0, msg.find("\n") + 1);
 		addToInputBuffer(_userInput, cmd);
 	}
 	if (!msg.empty())

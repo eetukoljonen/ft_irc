@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:59:36 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/17 17:16:46 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/18 12:08:47 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,13 +73,18 @@ void Server::_runServer()
 			else
 				_receiveMessage(i);
 		}
+		else if (_pollfds[i].revents & (POLLNVAL | POLLERR | POLLHUP))
+		{
+			std::cout << "POLLERR STUFF" << std::endl;
+			exit (1);
+		}
     }
 }
 
 Server::Server(int port, std::string pw, std::string name)
 :_name(name), _pw(pw), _port(port), _listeningSocket(0)
 {
-	// std::string test1 = "PRIVMSG #example_channel :Hello, this is a     regular message in a channel! \r\n";
+	// std::string test1 = ":Nick!user@hostname PRIVMSG #example_channel :Hello, this is a regular message in a channel!\r\n";
 
 	// User testman;
 	// testman.appendInput(test1);

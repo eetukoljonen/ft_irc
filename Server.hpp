@@ -20,26 +20,26 @@
 
 class Server
 {
-	public:
-		Server(int port, std::string pw, std::string name = "Garbaggio");
-		~Server(){};
+public:
+	Server(int port, std::string pw, std::string name = "Garbaggio");
+	~Server(){};
 
-	private:
-		std::string 				_name;
-		std::string 				_pw;
-		int 						_port;
-        int 						_listeningSocket;
-		struct sockaddr_in			_serverAddr;
-		std::vector<struct pollfd>	_pollfds;
-		std::map<int, User *>		_usersMap;
-		t_client					_client;
-		
-		void	_runServer();
-		void	_bindSocket();
-		void	_createSocket();
-		void	_addPollFd(int fd);
-		void	_acceptClient();
-		void	_receiveMessage(int index);
+private:
+	std::string 				_name;
+	std::string 				_pw;
+	int 						_port;
+	int 						_listeningSocket;
+	struct sockaddr_in			_serverAddr;
+	std::vector<struct pollfd>	_pollfds;
+	std::map<int, User *>		_usersMap;
+	t_client					_client;
+	
+	void	_runServer();
+	void	_bindSocket();
+	void	_createSocket();
+	void	_addPollFd(int fd);
+	void	_acceptClient();
+	void	_receiveMessage(int index);
 };
 
 #endif
