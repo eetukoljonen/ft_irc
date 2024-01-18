@@ -17,6 +17,11 @@
 #include <arpa/inet.h>
 #include <fstream>
 #include "User.hpp"
+#include "CommandExecution.hpp"
+
+# define RPL_WELCOME(servername, nick, user, host)(":" + servername + " 001 " + nick + " Welcome to the Internet Relay Network " + nick + "!" + user + "@" + host + "\r\n") //001
+# define ERR_NOTREGISTERED(servername)(":" + servername + " 451 * :Register first.\r\n")
+
 
 class Server
 {
@@ -26,6 +31,7 @@ public:
 
 private:
 	std::string 				_name;
+	std::string					_host;
 	std::string 				_pw;
 	int 						_port;
 	int 						_listeningSocket;
@@ -40,6 +46,7 @@ private:
 	void	_addPollFd(int fd);
 	void	_acceptClient();
 	void	_receiveMessage(int index);
+	User	*_getUserByFd(const int fd);
 };
 
 #endif

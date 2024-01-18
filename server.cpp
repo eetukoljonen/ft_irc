@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:59:36 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/18 12:08:47 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/18 16:25:06 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,17 @@ void Server::_runServer()
 			if (_pollfds[i].fd == _listeningSocket) 
 				_acceptClient();
 			else
+			{
 				_receiveMessage(i);
+				CommandExecution::execute(*_getUserByFd(_pollfds[i].fd), *this);
+			}
+		}
+		else if (_pollfds[i].revents & POLLOUT)
+		{
+			std::string msg = _getUserByFd(_pollfds[i].fd)->extractFromSendBuffer();
+			// std::cout << "msg to client: " << msg << std::endl;
+			if (!msg.empty())
+				send(_pollfds[i].fd, msg.c_str(), msg.size(), 0);
 		}
 		else if (_pollfds[i].revents & (POLLNVAL | POLLERR | POLLHUP))
 		{
@@ -79,6 +89,21 @@ void Server::_runServer()
 			exit (1);
 		}
     }
+}
+
+User* Server::_getUserByFd(const int fd)
+{
+   	auto it = _usersMap.find(fd);
+    if (it != _usersMap.end())
+	{
+		//std::cout << it->second->getUserInfo().fd << std::endl;
+		return it->second;
+	}
+	else
+	{
+		std::cout << "couldnt find fd from map" << std::endl;
+		return nullptr;
+	}  
 }
 
 Server::Server(int port, std::string pw, std::string name)
@@ -113,6 +138,7 @@ void Server::_bindSocket()
         throw std::exception();
     if (listen(_listeningSocket, MAX_CLIENTS) == -1)  // mark the socket as listening and set a max connections (backlog)
         throw std::exception();
+	_host = inet_ntoa( _serverAddr.sin_addr);
 }
 
 void Server::_createSocket()

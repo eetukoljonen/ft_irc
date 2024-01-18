@@ -14,6 +14,22 @@ User &User::operator=(User const &rhs)
     return (*this);
 }
 
+std::string const User::extractFromSendBuffer()
+{
+	std::string msg;
+	if (!_sendBuffer.empty())
+	{
+		msg = _sendBuffer[0];
+		_sendBuffer.erase(_sendBuffer.begin());
+	}
+	return (msg);
+}
+
+void User::addToSendBuffer(std::string const &msg)
+{
+	_sendBuffer.push_back(msg);
+}
+
 std::vector<std::string> split(std::string const &str, char const &delimeter)
 {
 	std::istringstream			iss(str);
