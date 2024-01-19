@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 16:38:54 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/18 17:07:47 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/19 11:39:49 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,9 @@ Command &Command::operator=(Command const &rhs)
 
 Command &Command::operator=(std::string const &input)
 {
+    _prefix.clear();
+	_command.clear();
+	_params.clear();
     _parseInput(input);
     return (*this);
 }
