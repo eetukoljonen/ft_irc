@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 11:43:38 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/19 13:47:56 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 
-Channel::Channel(){}
+Channel::Channel() : _invateOnly(false) {}
 
 Channel::Channel(Channel const &cpy)
 {
@@ -20,6 +20,7 @@ Channel::Channel(Channel const &cpy)
 	_bannedUsers = cpy._bannedUsers;
 	_kickedUsers = cpy._kickedUsers;
 	_operators = cpy._operators;
+	_invateOnly = cpy._invateOnly;
 }
 
 Channel::~Channel(){}
@@ -32,6 +33,7 @@ Channel &Channel::operator=(Channel const &rhs)
 		_bannedUsers = rhs._bannedUsers;
 		_kickedUsers = rhs._kickedUsers;
 		_operators = rhs._operators;
+		_invateOnly = rhs._invateOnly;
     }
     return (*this);
 }
@@ -57,3 +59,27 @@ bool Channel::isOperator(std::string const &nick)
 	return (false);
 }
 
+void Channel::addToChannel(User *user)
+{
+	_users[user->getNick()] = user;
+}
+
+void Channel::addToOperators(std::string const &nick)
+{
+	_operators.push_back(nick);
+}
+
+void Channel::addToBanList(std::string const &nick)
+{
+	_bannedUsers.push_back(nick);
+}
+
+void Channel::addToKickList(std::string const &nick)
+{
+	_kickedUsers.push_back(nick);
+}
+
+bool Channel::isInvateOnly()
+{
+	return (_invateOnly);
+}

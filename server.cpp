@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:59:36 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 11:47:09 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/19 17:27:54 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,8 +112,7 @@ void Server::_runServer()
 			{
 				_receiveMessage(i);
 				//handle client registration
-				_clientRegistration(*_getUserByFd(_pollfds[i].fd));
-				CommandExecution::execute(*_getUserByFd(_pollfds[i].fd), *this);
+				// _clientRegistration(*_getUserByFd(_pollfds[i].fd));
 			}
 		}
 		else if (_pollfds[i].revents & POLLOUT)
@@ -128,7 +127,16 @@ void Server::_runServer()
 			std::cout << "POLLERR STUFF" << std::endl;
 			exit (1);
 		}
-    }
+		if (_pollfds[i].fd != _listeningSocket)
+		{
+			std::string input = _getUserByFd(_pollfds[i].fd)->extractInput();
+			if (!input.empty())
+			{
+				Command cmd(input);
+				CommandExecution::execute(_getUserByFd(_pollfds[i].fd), this, cmd);
+			}
+    	}
+	}
 }
 
 User* Server::_getUserByFd(const int fd)
@@ -198,4 +206,9 @@ void Server::_addPollFd(int fd)
 	pollfd.events = POLLIN | POLLOUT;
 	pollfd.revents = 0;
 	_pollfds.push_back(pollfd);
+}
+
+std::string const &Server::getName() const
+{
+	return (_name);
 }

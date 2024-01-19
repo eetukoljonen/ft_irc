@@ -1,8 +1,17 @@
 #include "User.hpp"
 
-User::User(){}
+User::User() : _isRegistered(false) {}
 
-User::User(User const &cpy){(void)cpy;}
+User::User(User const &cpy)
+{
+	_nick = cpy._nick;
+	_user = cpy._user;
+	_ipAddr = cpy._ipAddr;
+	_userInfo = cpy._userInfo;
+	_userInput = cpy._userInput;
+	_sendBuffer = cpy._sendBuffer;
+	_isRegistered = cpy._isRegistered;
+}
 
 User::~User(){}
 
@@ -10,8 +19,20 @@ User &User::operator=(User const &rhs)
 {
     if (this != &rhs)
     {
+		_nick = rhs._nick;
+		_user = rhs._user;
+		_ipAddr = rhs._ipAddr;
+		_userInfo = rhs._userInfo;
+		_userInput = rhs._userInput;
+		_sendBuffer = rhs._sendBuffer;
+		_isRegistered = rhs._isRegistered;
     }
     return (*this);
+}
+
+bool const &User::isRegistered() const
+{
+	return (_isRegistered);
 }
 
 std::string const User::extractFromSendBuffer()
@@ -91,13 +112,18 @@ int User::addToInputBuffer(std::string msg)
 	}
 	if (!msg.empty())
 		appendInput(_userInput, msg);
+	std::cout << "inside user input size: " << _userInput.size() << std::endl;
+	for (size_t i = 0; i < _userInput.size(); i++)
+	{
+		std::cout << _userInput[i] << std::endl;
+	}
 	return (0);
 }
 
 std::string const User::extractInput()
 {
 	if (_userInput.empty())
-	 	return (nullptr);
+	 	return (std::string());
 	std::string const msg = _userInput[0];
 	_userInput.erase(_userInput.begin());
 	return (msg);
@@ -113,4 +139,14 @@ std::string const &User::getNick(){
 
 std::string const	&User::getUser(){
 	return _user;
+}
+
+void User::setNick(std::string const &nick)
+{
+	_nick = nick;
+}
+
+void User::setUser(std::string const &user)
+{
+	_user = user;
 }

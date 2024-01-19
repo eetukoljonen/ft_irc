@@ -3,14 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 11:42:15 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/19 17:00:04 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CommandExecution.hpp"
+
+User *CommandExecution::_user;
+Server *CommandExecution::_server;
+Command CommandExecution::_command;
 
 CommandExecution::CommandExecution(){}
 
@@ -43,16 +47,30 @@ CommandExecution &CommandExecution::operator=(CommandExecution const &rhs)
 // 	}
 // }
 
-
-
-void CommandExecution::execute(User &user, Server &server)
+void CommandExecution::_join()
 {
-	(void)server;
-	std::string input = user.extractInput();
-	if (input.empty())
-		return ;
-	Command cmd(input);
-    
+	if (!_user->isRegistered())
+	{
+		std::cout << "adding to send buffer" << std::endl;
+		_user->addToSendBuffer(ERR_NOTREGISTERED(_server->getName()));
+	}
+}
+
+void CommandExecution::_nick()
+{
+	if (!_command.getParams().empty())
+	{
+		std::cout << "adding to send buffer" << std::endl;
+		_user->addToSendBuffer(":Garbaggio 431 * :No nickname given");
+	}
+	_user->setNick(_command.getParams().at(0));
+}
+
+void CommandExecution::execute(User	*user, Server *server, Command &command)
+{
+	_server = server;
+	_user = user;
+	_command = command;
 	std::string	Cmds[2] = {
 		//"INVITE",
 		"JOIN",
@@ -74,17 +92,17 @@ void CommandExecution::execute(User &user, Server &server)
     };
     
     int i = 0;
-	std::string userCommand = cmd.getCommand();
+	std::string userCommand = command.getCommand();
     while (!Cmds[i].empty())
     {
-        if (userCommand.compare(Cmds[i]))
+        if (!userCommand.compare(Cmds[i]))
             break;
         i++;
     }
    
 	switch (i + 1)
 	{
-        case 1: std::cout << "do it" << std::endl; break;
+        case 1: _join(); break;
 		case 2: std::cout << "do that" << std::endl; break;
 		// case 1: invite(this, client_fd, cmd_infos); break;
 		// case 2: join(this, client_fd, cmd_infos); break;
@@ -103,7 +121,7 @@ void CommandExecution::execute(User &user, Server &server)
 		// case 15: quit(this, client_fd, cmd_infos); break;
 		// case 16: topic(this, client_fd, cmd_infos); break;
 		// case 17: user(this, client_fd, cmd_infos); break;
-		// default:
+		default: break;
 		// 	addToClientBuffer(this, client_fd, ERR_UNKNOWNCOMMAND(client->getNickname(), cmd_infos.name));
 	}
 }

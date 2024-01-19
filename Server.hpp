@@ -26,7 +26,7 @@ class Server
 public:
 	Server(int port, std::string pw, std::string name = "Garbaggio");
 	~Server(){};
-
+	std::string const			&getName() const;
 private:
 	std::string 				_name;
 	std::string					_host;
