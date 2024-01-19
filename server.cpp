@@ -3,14 +3,22 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:59:36 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/18 17:04:25 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/19 11:47:09 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+
+bool loop = true;
+
+static void	signal_handler(int signal)
+{
+	(void)signal;
+	loop = false;
+}
 
 void Server::_receiveMessage(int index)
 {
@@ -29,8 +37,8 @@ void Server::_receiveMessage(int index)
 	}
 	else
 	{
-		std::cout << std::string(buf, 0, nbytes) << std::endl;
-		std::cout << "fd = " << _usersMap.find(_pollfds[index].fd)->second->getUserInfo().fd << std::endl;
+		std::cout << ">>" << std::string(buf, 0, nbytes) << std::endl;
+		//std::cout << "fd = " << _usersMap.find(_pollfds[index].fd)->second->getUserInfo().fd << std::endl;
 		_usersMap.find(_pollfds[index].fd)->second->addToInputBuffer(std::string(buf, 0, nbytes));
 	}
 }
@@ -55,6 +63,36 @@ void Server::_acceptClient()
 	}
 }
 
+void	Server::_clientRegistration(User &user)
+{
+	user.addToSendBuffer(RPL_WELCOME(user_id(user.getNick(), user.getUser()), user.getNick()));
+	//handle rest rpl later
+	
+	std::ifstream		data;
+	char				filepath[5] = "motd";
+
+	data.open(filepath);
+	if (!data)
+	{
+		user.addToSendBuffer(ERR_NOMOTD(user.getNick()));
+		return ;
+	}
+	else
+	{
+		std::string		motd_lines;
+		std::string		buf;
+		
+		buf = RPL_MOTDSTART(user.getNick(), "ft_irc (localhost)");
+		while (getline(data, motd_lines))
+		{
+			buf += RPL_MOTD(user.getNick(), motd_lines);
+		}
+		buf += RPL_ENDOFMOTD(user.getNick());
+		user.addToSendBuffer(buf);
+	}
+	data.close();
+}
+
 void Server::_runServer()
 {    	
 	nfds_t numFds = static_cast<nfds_t>(_pollfds.size());
@@ -73,6 +111,8 @@ void Server::_runServer()
 			else
 			{
 				_receiveMessage(i);
+				//handle client registration
+				_clientRegistration(*_getUserByFd(_pollfds[i].fd));
 				CommandExecution::execute(*_getUserByFd(_pollfds[i].fd), *this);
 			}
 		}
@@ -96,7 +136,7 @@ User* Server::_getUserByFd(const int fd)
    	auto it = _usersMap.find(fd);
     if (it != _usersMap.end())
 	{
-		//std::cout << it->second->getUserInfo().fd << std::endl;
+		//std::cout << user->getUserInfo().fd << std::endl;
 		return it->second;
 	}
 	else
@@ -121,7 +161,8 @@ Server::Server(int port, std::string pw, std::string name)
 	}
 	catch (std::exception &e) {}
 	
-	while (1)
+	signal(SIGINT, signal_handler);
+	while (loop)
 		_runServer();
 	for (size_t i = 0; i < _pollfds.size(); i++)
 		close(_pollfds[i].fd);

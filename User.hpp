@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 11:31:00 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/19 11:54:36 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,10 @@ public:
 	t_client 					&getUserInfo();
 	void						addToSendBuffer(std::string const &msg);
 	std::string const			extractFromSendBuffer();
+
+	std::string const			&getNick();
+	std::string const			&getUser();
+	
 private:
 	std::string					_nick;
 	std::string					_user;

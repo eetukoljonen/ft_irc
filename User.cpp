@@ -103,7 +103,14 @@ std::string const User::extractInput()
 	return (msg);
 }
 
-t_client &User::getUserInfo()
-{
-	return (_userInfo);
+t_client &User::getUserInfo(){
+	return _userInfo;
+}
+
+std::string const &User::getNick(){
+	return _nick;
+}
+
+std::string const	&User::getUser(){
+	return _user;
 }

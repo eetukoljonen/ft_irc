@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 16:38:54 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 11:39:49 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/19 11:39:24 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ Command &Command::operator=(Command const &rhs)
 
 Command &Command::operator=(std::string const &input)
 {
-    _prefix.clear();
+	_prefix.clear();
 	_command.clear();
 	_params.clear();
     _parseInput(input);

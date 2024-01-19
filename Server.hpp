@@ -18,9 +18,7 @@
 #include <fstream>
 #include "User.hpp"
 #include "CommandExecution.hpp"
-
-# define RPL_WELCOME(servername, nick, user, host)(":" + servername + " 001 " + nick + " Welcome to the Internet Relay Network " + nick + "!" + user + "@" + host + "\r\n") //001
-# define ERR_NOTREGISTERED(servername)(":" + servername + " 451 * :Register first.\r\n")
+#include "Replies.hpp"
 
 
 class Server
@@ -40,6 +38,7 @@ private:
 	std::map<int, User *>		_usersMap;
 	t_client					_client;
 	
+	void 	_clientRegistration(User &user);
 	void	_runServer();
 	void	_bindSocket();
 	void	_createSocket();

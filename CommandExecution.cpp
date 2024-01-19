@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 10:53:35 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/19 11:42:15 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,8 @@ CommandExecution &CommandExecution::operator=(CommandExecution const &rhs)
 // 		delete userCommand;
 // 	}
 // }
+
+
 
 void CommandExecution::execute(User &user, Server &server)
 {
@@ -104,4 +106,16 @@ void CommandExecution::execute(User &user, Server &server)
 		// default:
 		// 	addToClientBuffer(this, client_fd, ERR_UNKNOWNCOMMAND(client->getNickname(), cmd_infos.name));
 	}
+}
+
+void CommandExecution::_motd(User &user, Server &server)
+{
+	std::ifstream		data;
+
+	data.open("motd");
+	std::cout << "data opened" << std::endl;
+	data.close();
+
+	(void)user;
+	(void)server;
 }
