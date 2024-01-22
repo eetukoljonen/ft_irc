@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 16:55:49 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 11:41:15 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/22 17:06:08 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,3 +27,9 @@ std::vector<std::string> split(std::string const &str, char const &delimeter)
 	return (tokens);
 }
 
+std::string truncateLFCR(std::string const &str)
+{
+	std::string result = str.substr(0, str.find("\n"));
+	result = result.substr(0, str.find("\r"));
+	return (result);
+}

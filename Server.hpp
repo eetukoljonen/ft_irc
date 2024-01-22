@@ -27,6 +27,10 @@ public:
 	Server(int port, std::string pw, std::string name = "Garbaggio");
 	~Server(){};
 	std::string const			&getName() const;
+	std::string const			&getPass() const;
+	std::map<int, User *> const	&getUsersMap() const;
+	User						*_findUserByNick(std::string nick) const;
+
 private:
 	std::string 				_name;
 	std::string					_host;
@@ -40,12 +44,14 @@ private:
 	
 	void 	_clientRegistration(User &user);
 	void	_runServer();
+	void	_executeCommands(User *user);
 	void	_bindSocket();
 	void	_createSocket();
 	void	_addPollFd(int fd);
 	void	_acceptClient();
 	void	_receiveMessage(int index);
 	User	*_getUserByFd(const int fd);
+
 };
 
 #endif

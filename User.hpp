@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 14:32:18 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/22 16:31:48 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,9 @@ public:
 	std::string const			&getUser();
 	void						setNick(std::string const &nick);
 	void						setUser(std::string const &user);
-	
+	void						setRegistrationFlag(bool flag);
+	bool const					&isPassCorrect() const;
+	void						setPassFlag(bool flag);
 private:
 	std::string					_nick;
 	std::string					_user;
@@ -63,6 +65,7 @@ private:
 	std::vector<std::string>	_userInput;
 	std::vector<std::string>	_sendBuffer;
 	bool						_isRegistered;
+	bool						_passFlag;
 };
 
 #endif

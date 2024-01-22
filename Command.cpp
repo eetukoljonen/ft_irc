@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 16:38:54 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 13:21:37 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/22 17:01:29 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void Command::_parseInput(std::string const &input)
 {
 	if (input.empty() || input.find("\n") == std::string::npos)
 		return;
-	std::vector<std::string> splitted_input = split(input, ' ');
+	std::vector<std::string> splitted_input = split(truncateLFCR(input), ' ');
 	size_t size = splitted_input.size();
 	for (size_t i = 0; i < size; i++)
 	{

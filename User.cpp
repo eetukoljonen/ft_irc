@@ -1,6 +1,6 @@
 #include "User.hpp"
 
-User::User() : _isRegistered(false) {}
+User::User() : _isRegistered(false), _passFlag(false) {}
 
 User::User(User const &cpy)
 {
@@ -11,6 +11,7 @@ User::User(User const &cpy)
 	_userInput = cpy._userInput;
 	_sendBuffer = cpy._sendBuffer;
 	_isRegistered = cpy._isRegistered;
+	_passFlag = cpy._passFlag;
 }
 
 User::~User(){}
@@ -26,13 +27,9 @@ User &User::operator=(User const &rhs)
 		_userInput = rhs._userInput;
 		_sendBuffer = rhs._sendBuffer;
 		_isRegistered = rhs._isRegistered;
+		_passFlag = rhs._passFlag;
     }
     return (*this);
-}
-
-bool const &User::isRegistered() const
-{
-	return (_isRegistered);
 }
 
 std::string const User::extractFromSendBuffer()
@@ -50,6 +47,8 @@ void User::addToSendBuffer(std::string const &msg)
 {
 	_sendBuffer.push_back(msg);
 }
+
+
 
 // t_command *User::extractCommand()
 // {
@@ -149,4 +148,24 @@ void User::setNick(std::string const &nick)
 void User::setUser(std::string const &user)
 {
 	_user = user;
+}
+
+bool const &User::isRegistered() const
+{
+	return (_isRegistered);
+}
+
+void	User::setRegistrationFlag(bool flag)
+{
+	_isRegistered = flag;
+}
+
+bool const	&User::isPassCorrect() const
+{
+	return _passFlag;
+}
+
+void	User::setPassFlag(bool flag)
+{
+	_passFlag = flag;
 }

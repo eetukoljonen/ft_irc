@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:01 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 14:29:15 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/22 17:03:31 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "Server.hpp"
 #include "User.hpp"
 #include "Command.hpp"
+#include "Utils.hpp"
 
 class Server;
 
@@ -35,9 +36,14 @@ private:
 	static Server	*_server;
 	static Command	_command;
 
-	static void		_motd(User &user, Server &server);
+	static void		_motd();
 	static void		_join();
 	static void		_nick();
+	static void		_pass();
+	static void		_userF();
+	// static void		_cap();
+	static void		_kill();
 };
+
 
 #endif

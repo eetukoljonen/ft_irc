@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:59:36 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 17:27:54 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/22 16:58:45 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,18 @@ void	Server::_clientRegistration(User &user)
 	data.close();
 }
 
+void Server::_executeCommands(User *user)
+{
+	while (1)
+	{
+		std::string input = user->extractInput();
+		if (input.empty())
+			break ;
+		Command cmd(input);
+		CommandExecution::execute(user, this, cmd);
+	}
+}
+
 void Server::_runServer()
 {    	
 	nfds_t numFds = static_cast<nfds_t>(_pollfds.size());
@@ -104,6 +116,7 @@ void Server::_runServer()
 	}
     for (size_t i = 0; i < numFds; ++i) 
 	{
+		User *currentUser = _getUserByFd(_pollfds[i].fd);
 		if (_pollfds[i].revents & POLLIN)
 		{
 			if (_pollfds[i].fd == _listeningSocket) 
@@ -111,31 +124,32 @@ void Server::_runServer()
 			else
 			{
 				_receiveMessage(i);
-				//handle client registration
-				// _clientRegistration(*_getUserByFd(_pollfds[i].fd));
+				_executeCommands(currentUser);
 			}
 		}
 		else if (_pollfds[i].revents & POLLOUT)
 		{
-			std::string msg = _getUserByFd(_pollfds[i].fd)->extractFromSendBuffer();
-			// std::cout << "msg to client: " << msg << std::endl;
-			if (!msg.empty())
-				send(_pollfds[i].fd, msg.c_str(), msg.size(), 0);
+			if (_pollfds[i].fd != _listeningSocket)
+			{
+				std::string msg;
+				while (1)
+				{
+					std::string tmp = currentUser->extractFromSendBuffer();
+					if (tmp.empty())
+						break ;
+					msg.append(tmp);
+				}
+				// std::string msg = currentUser->extractFromSendBuffer();
+				// // std::cout << "msg to client: " << msg << std::endl;
+				if (!msg.empty())
+					send(_pollfds[i].fd, msg.c_str(), msg.size(), 0);
+			}
 		}
 		else if (_pollfds[i].revents & (POLLNVAL | POLLERR | POLLHUP))
 		{
 			std::cout << "POLLERR STUFF" << std::endl;
 			exit (1);
 		}
-		if (_pollfds[i].fd != _listeningSocket)
-		{
-			std::string input = _getUserByFd(_pollfds[i].fd)->extractInput();
-			if (!input.empty())
-			{
-				Command cmd(input);
-				CommandExecution::execute(_getUserByFd(_pollfds[i].fd), this, cmd);
-			}
-    	}
 	}
 }
 
@@ -147,11 +161,8 @@ User* Server::_getUserByFd(const int fd)
 		//std::cout << user->getUserInfo().fd << std::endl;
 		return it->second;
 	}
-	else
-	{
-		std::cout << "couldnt find fd from map" << std::endl;
-		return nullptr;
-	}  
+	// std::cout << "couldnt find fd from map" << std::endl;
+	return nullptr;
 }
 
 Server::Server(int port, std::string pw, std::string name)
@@ -208,7 +219,27 @@ void Server::_addPollFd(int fd)
 	_pollfds.push_back(pollfd);
 }
 
-std::string const &Server::getName() const
+std::string const &Server::getName() const {
+	return _name;
+}
+
+std::string const &Server::getPass() const {
+	return _pw;
+}
+
+std::map<int, User *> const &Server::getUsersMap() const {
+	return _usersMap;
+}
+
+User *Server::_findUserByNick(std::string nick) const
 {
-	return (_name);
+	auto it = _usersMap.begin();
+
+	while (it != _usersMap.end())
+	{
+		if (!it->second->getNick().compare(nick))
+			return it->second;
+		it++;
+	}
+	return nullptr;
 }
