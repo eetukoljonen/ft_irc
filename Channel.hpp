@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 13:48:19 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/23 17:13:28 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,12 +32,20 @@ public:
 	void							addToOperators(std::string const &nick);
 	void							addToKickList(std::string const &nick);
 	void							addToBanList(std::string const &nick);
+	void							setChannelName(std::string const &name);
+	std::string const				&getChannelName() const;
+	void							setChannelKey(std::string const &key);
+	std::string const				&getChannelkey() const;
 private:
 	std::map<std::string, User *>	_users;
 	std::vector<std::string>		_bannedUsers;
 	std::vector<std::string>		_kickedUsers;
 	std::vector<std::string>		_operators;
+	std::string						_topic;
+	std::string						_channelName;
+	std::string						_channelKey;
 	bool							_invateOnly;
+	int								_userLimit;
 };
 
 #endif

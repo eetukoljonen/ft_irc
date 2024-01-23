@@ -6,13 +6,13 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 13:47:56 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/23 17:13:30 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 
-Channel::Channel() : _invateOnly(false) {}
+Channel::Channel() : _invateOnly(false), _userLimit(100) {}
 
 Channel::Channel(Channel const &cpy)
 {
@@ -21,6 +21,8 @@ Channel::Channel(Channel const &cpy)
 	_kickedUsers = cpy._kickedUsers;
 	_operators = cpy._operators;
 	_invateOnly = cpy._invateOnly;
+	_userLimit = cpy._userLimit;
+	_topic = cpy._topic;
 }
 
 Channel::~Channel(){}
@@ -34,6 +36,8 @@ Channel &Channel::operator=(Channel const &rhs)
 		_kickedUsers = rhs._kickedUsers;
 		_operators = rhs._operators;
 		_invateOnly = rhs._invateOnly;
+		_userLimit = rhs._userLimit;
+		_topic = rhs._topic;
     }
     return (*this);
 }
@@ -82,4 +86,24 @@ void Channel::addToKickList(std::string const &nick)
 bool Channel::isInvateOnly()
 {
 	return (_invateOnly);
+}
+
+void Channel::setChannelName(std::string const &name)
+{
+	_channelName = name;
+}
+
+std::string const &Channel::getChannelName() const
+{
+	return (_channelName);
+}
+
+void Channel::setChannelKey(std::string const &key)
+{
+	_channelKey = key;
+}
+
+std::string const &Channel::getChannelkey() const
+{
+	return (_channelKey);
 }

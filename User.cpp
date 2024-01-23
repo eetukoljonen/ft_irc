@@ -169,3 +169,23 @@ void	User::setPassFlag(bool flag)
 {
 	_passFlag = flag;
 }
+
+void User::removeUserMode(std::string const &mode)
+{
+	if (_userModes.empty())
+		return ;
+	size_t pos = _userModes.find(mode);
+	if (pos != std::string::npos)
+		_userModes.erase(pos, 1);
+}
+
+void User::addUserMode(std::string const &mode)
+{
+	if (_userModes.find(mode) == std::string::npos)
+		_userModes.append(mode);
+}
+
+std::string const &User::getUserMode() const
+{
+	return (_userModes);
+}

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   server.cpp                                         :+:      :+:    :+:   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:59:36 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/22 16:58:45 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/23 17:15:39 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ void Server::_acceptClient()
 
 void	Server::_clientRegistration(User &user)
 {
-	user.addToSendBuffer(RPL_WELCOME(user_id(user.getNick(), user.getUser()), user.getNick()));
+	user.addToSendBuffer(RPL_WELCOME(_name, user_id(user.getNick(), user.getUser()), user.getNick()));
 	//handle rest rpl later
 	
 	std::ifstream		data;
@@ -74,7 +74,7 @@ void	Server::_clientRegistration(User &user)
 	data.open(filepath);
 	if (!data)
 	{
-		user.addToSendBuffer(ERR_NOMOTD(user.getNick()));
+		user.addToSendBuffer(ERR_NOMOTD(_name, user.getNick()));
 		return ;
 	}
 	else
@@ -85,9 +85,9 @@ void	Server::_clientRegistration(User &user)
 		buf = RPL_MOTDSTART(user.getNick(), "ft_irc (localhost)");
 		while (getline(data, motd_lines))
 		{
-			buf += RPL_MOTD(user.getNick(), motd_lines);
+			buf += RPL_MOTD(_name, user.getNick(), motd_lines);
 		}
-		buf += RPL_ENDOFMOTD(user.getNick());
+		buf += RPL_ENDOFMOTD(_name, user.getNick());
 		user.addToSendBuffer(buf);
 	}
 	data.close();
@@ -227,7 +227,7 @@ std::string const &Server::getPass() const {
 	return _pw;
 }
 
-std::map<int, User *> const &Server::getUsersMap() const {
+std::map<int, User *> &Server::getUsersMap() {
 	return _usersMap;
 }
 
@@ -242,4 +242,17 @@ User *Server::_findUserByNick(std::string nick) const
 		it++;
 	}
 	return nullptr;
+}
+
+void Server::addNewChannel(Channel *channel)
+{
+	_channelMap[channel->getChannelName()] = channel;
+}
+
+Channel *Server::getChannelByName(std::string const &name) const
+{
+	std::map<std::string, Channel *>::const_iterator it = _channelMap.find(name);
+	if (it == _channelMap.end())
+		return (nullptr);
+	return (it->second);
 }
