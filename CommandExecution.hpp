@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:01 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/23 16:25:44 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/24 17:09:06 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "Command.hpp"
 #include "Utils.hpp"
 #include <regex>
+#include "Channel.hpp"
 
 class Server;
 
@@ -38,7 +39,11 @@ private:
 	static Command	_command;
 
 	static void		_motd();
+	//join
 	static void		_join();
+	static void		_joinExistingChannel(Channel *channel, std::string const &key);
+	static void		_joinNewChannel(std::string const &name, std::string const &key);
+	static void		_joinSucces(Channel *channel);
 	// nick
 	static void		_nick();
 	static bool 	_isValidNick();

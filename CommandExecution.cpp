@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/24 14:52:13 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/24 17:09:02 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		"PASS",
 		"CAP",
 		"MOTD",
-		"KILL",
+		"kill",
 		"MODE"
     };
     
@@ -71,6 +71,44 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		default: break;
 		// 	addToClientBuffer(this, client_fd, ERR_UNKNOWNCOMMAND(client->getNickname(), cmd_infos.name));
 	}
+}
+
+void CommandExecution::_joinSucces(Channel *channel)
+{
+	std::string const &topic = channel->getTopic();
+	if (topic.empty())
+		_user->addToSendBuffer(RPL_NOTOPIC(_server->getName(), _user->getNick(), channel->getChannelName()));
+	else
+		_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), channel->getChannelName(), channel->getTopic()));
+	_user->addToSendBuffer(RPL_NAMES(_server->getName(), channel->getChannelName(), channel->getNickList(),  _user->getNick()));
+	_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), channel->getChannelName(), _user->getNick()));
+	channel->addToChannel(_user);
+}
+
+void CommandExecution::_joinExistingChannel(Channel *channel, std::string const &key)
+{
+	if (channel->isInviteOnly() && key.empty())
+		_user->addToSendBuffer(ERR_INVITEONLYCHAN(_server->getName(), _user->getNick(), channel->getChannelName()));
+	else if (channel->getUserCount() + 1 > channel->getUserLimit())
+		_user->addToSendBuffer(ERR_CHANNELISFULL(_server->getName(), _user->getNick(), channel->getChannelName()));
+	else
+	{
+		if (channel->isInviteOnly() && channel->getChannelkey().compare(key))
+			_user->addToSendBuffer(ERR_BADCHANNELKEY(_server->getName(), _user->getNick(), channel->getChannelName()));
+		else
+			_joinSucces(channel);
+	}
+}
+
+void CommandExecution::_joinNewChannel(std::string const &name, std::string const &key)
+{
+	Channel *channel;
+	if (!key.empty())
+		channel = _server->createChannel(name, key);
+	else
+		channel = _server->createChannel(name);
+	channel->addToOperators(_user->getNick());
+	_joinSucces(channel);
 }
 
 void CommandExecution::_join()
@@ -100,44 +138,18 @@ void CommandExecution::_join()
 	}
 	for (size_t i = 0; i < channelCount; i++)
 	{
+		std::string channelName = channelNames[i];
+		std::string channelKey;
+		if (i < keyCount)
+			channelKey = channelKeys[i];
 		if (channelNames[i].at(0) == '#' || channelNames[i].at(0) == '&')
-			channelNames[i] = channelNames[i].substr(1);
-		Channel *channel = _server->getChannelByName(channelNames[i]);
+			channelName = channelNames[i].substr(1);
+		Channel *channel = _server->getChannelByName(channelName);
 		// if channel exists
 		if (channel != nullptr)
-		{
-			if (channel->isInviteOnly() && keyCount < i)
-				_user->addToSendBuffer(ERR_INVITEONLYCHAN(_server->getName(), _user->getNick(), channelNames[i]));
-			else if (channel->getUserCount() + 1 > channel->getUserLimit())
-				_user->addToSendBuffer(ERR_CHANNELISFULL(_server->getName(), _user->getNick(), channel->getChannelName()));
-			else
-			{
-				if (channel->getChannelkey().compare(channelKeys[i]))
-					_user->addToSendBuffer(ERR_BADCHANNELKEY(_server->getName(), _user->getNick(), channelNames[i]));
-				else
-				{
-					std::string const &topic = channel->getTopic();
-					if (topic.empty())
-						_user->addToSendBuffer(RPL_NOTOPIC(_server->getName(), _user->getNick(), channel->getChannelName()));
-					else
-						_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), channel->getChannelName(), channel->getTopic()));
-					_user->addToSendBuffer(RPL_NAMES(_server->getName(), channel->getChannelName(), channel->getNickList(),  _user->getNick()));
-					_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), channel->getChannelName(), _user->getNick()));
-					channel->addToChannel(_user);
-				}
-			}
-		}
+			_joinExistingChannel(channel, channelKey);
 		else // creating a new channel
-		{
-			if (!channelKeys.empty() && i <= keyCount)
-				channel = _server->createChannel(channelNames[i], channelKeys[i]);
-			else
-				channel = _server->createChannel(channelNames[i]);
-			channel->addToChannel(_user);
-			_user->addToSendBuffer(RPL_NOTOPIC(_server->getName(), _user->getNick(), channel->getChannelName()));
-			_user->addToSendBuffer(RPL_NAMES(_server->getName(), channel->getChannelName(), channel->getNickList(),  _user->getNick()));
-			_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), channel->getChannelName(), _user->getNick()));
-		}
+			_joinNewChannel(channelName, channelKey);
 	}
 }
 
