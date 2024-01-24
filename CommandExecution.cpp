@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/24 14:52:13 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/24 17:15:40 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 	_server = server;
 	_user = user;
 	_command = command;
-	std::string	Cmds[8] = 
+	std::string	Cmds[9] = 
 	{
 		"JOIN",
 		"NICK",
@@ -44,14 +44,15 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		"PASS",
 		"CAP",
 		"MOTD",
-		"KILL",
-		"MODE"
+		"kill",
+		"MODE",
+		"KICK"
     };
     
     int i = 0;
 	std::string _command = command.getCommand();
 	std::cout << "commnad = " << _command << std::endl;
-    while (i < 8)
+    while (i < 9)
     {
         if (!_command.compare(Cmds[i]))
             break;
@@ -68,6 +69,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 5: _motd(); break;
 		case 6: _kill(); break;
 		case 7: _mode(); break;
+		case 8: _kick(); break;
 		default: break;
 		// 	addToClientBuffer(this, client_fd, ERR_UNKNOWNCOMMAND(client->getNickname(), cmd_infos.name));
 	}
@@ -321,8 +323,6 @@ void    CommandExecution::_kill()
     User *target;
 	std::string reason;
 
-	//validate permissions first
-
 	if (!_command.getParams().empty())
 	{
 		target = _server->_findUserByNick(_command.getParams()[0]);
@@ -342,11 +342,54 @@ void    CommandExecution::_kill()
 			}
 			std::string msg = RPL_KILL(_server->getName(), target->getNick(), reason);
 			if (send(target->getUserInfo().fd, msg.c_str(), msg.size(), 0) < 0)
-				std::cout << "failed to send msg to" << target->getNick() 
+				std::cout << "failed to send msg to" << target->getNick() \
 				<< ". Error: " << strerror(errno) << std::endl;
 			_server->deleteUser(target->getUserInfo().fd);
 		}
 	}
+}
+
+void	CommandExecution::_kick()
+{
+	Channel *channel = _server->getChannelByName(_commands);
+	
+	if (_command.getParams().empty())
+	{
+		_user->addToSendBuffer(ERR_NEEDMOREPARAMS\
+		(_server->getName(), _user->getNick(), _command.getCommand()));
+		return ;
+	}
+	User *target = channel->getUser(_command.getParams()[2]);
+	
+	if (channel == nullptr)
+	{
+		_user->addToSendBuffer(ERR_NOSUCHCHANNEL(_server->getName(), _user->getUser(), _command.getCommand()));
+		return ;
+	}
+	if (!channel->UserOnChannel(_user->getNick()))
+	{
+		_user->addToSendBuffer(ERR_NOTONCHANNEL(_server->getName(), _user->getUser(), channel->getName()));
+		return ;
+	}
+	if (!channel->UserOnChannel(target))
+	{
+		_user->addToSendBuffer(ERR_NOTONCHANNEL(_server->getName(), _user->getUser(), channel->getName()));
+		return ;
+	}
+	
+	
+	
+	//check operator priviledge
+	// if (_user->isChannelOperator())
+	// {
+		
+	// }
+
+	
+	
+	//broadcast and send msg to user
+	//remove user from _users, _nickList,
+	//add to _kickedUsers
 }
 
 // void CommandExecution::_cap()

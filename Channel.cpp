@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/24 14:48:33 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/24 17:14:04 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,4 +135,19 @@ int Channel::getUserCount() const
 void Channel::setInviteOnly(bool const &flag)
 {
 	_inviteOnly = flag;
+}
+
+bool& Channel::UserOnChannel(std::string const &nick)
+{
+	if (std::find(_users.begin(), _users.end(), nick) != _users.end())
+		return (true);
+	return (false);
+}
+
+User	*Channel::getUser(std::string const &nick) const
+{
+	std::map<std::string, User *>::iterator it = _users.find(nick);
+	if (it != _users.end())
+		return it->second;
+	return (nullptr);
 }

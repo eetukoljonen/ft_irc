@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/24 14:39:26 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/24 17:08:01 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,8 @@ public:
 	int const						&getUserLimit() const;
 	int								getUserCount() const;
 	void							setInviteOnly(bool const &flag);
+	bool 							&UserOnChannel();
+	User 							*getUser() const;
 private:
 	std::map<std::string, User *>	_users;
 	std::vector<std::string>		_bannedUsers;

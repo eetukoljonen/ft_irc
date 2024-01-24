@@ -26,7 +26,7 @@
 #define ERR_NICKCOLLISION(server, nick) (":" + server + " 436 " + nick + " :Nickname collision\r\n")
 #define ERR_RESTRICTED(server, nick) (":" + server + " 484 " + nick + " :Your connection is restricted and cannot use this nickname\r\n")
 
-#define RPL_KILL(user_id, killed, comment) (user_id + " KILL " + killed + " " + comment + "\r\n")
+#define RPL_KILL(server, killed, comment) (server + " KILL " + killed + " Kill" + comment + "\r\n")
 #define ERR_NOSUCHNICK(servername, client, nickname) (":" + servername + " 401 " + client + " " + nickname + " :No such nick/channel.\r\n")
 
 //user
@@ -47,3 +47,14 @@
 # define RPL_NAMES(servername, channel, userlist, client) (":" + servername + " 353 " + client + " " + channel + " :" + userlist + "\r\n")
 # define RPL_ENDOFNAMES(servername, channel, client) (":" + servername + " 366 " + client + " " + channel + " :End of /NAMES list.\r\n")
 # define RPL_NOTOPIC(servername, client, channel) (":" + servername + " 331 " + client + " " + channel + " :No topic is set\r\n")
+
+//channel
+
+# define ERR_USERNOTINCHANNEL(server, client, nick, channel) \
+    (":" + server + " 441 " + client + " " + nick + " " + channel + " :They aren't on that channel\r\n")
+# define ERR_NOTONCHANNEL(server, client, channel) \
+    (":" + server + " 442 " + client + " " + channel + " :You're not on that channel\r\n")
+# define RPL_KICK(server, channel, kicked, reason) \
+    (":" + server + " KICK " + channel + " " + kicked + " :" + reason + "\r\n")
+# define ERR_NOSUCHCHANNEL(server, client, channel) \
+    (":" + server + " 403 " + client + " " + channel + " :No such channel\r\n")
