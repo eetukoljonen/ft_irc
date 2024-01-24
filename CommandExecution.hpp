@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:01 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/22 17:03:31 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/23 16:25:44 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include "User.hpp"
 #include "Command.hpp"
 #include "Utils.hpp"
+#include <regex>
 
 class Server;
 
@@ -38,11 +39,18 @@ private:
 
 	static void		_motd();
 	static void		_join();
+	// nick
 	static void		_nick();
+	static bool 	_isValidNick();
+
 	static void		_pass();
 	static void		_userF();
 	// static void		_cap();
 	static void		_kill();
+	//mode
+	static void		_mode();
+	static void		_userMode();
+	static void		_channelMode();
 };
 
 

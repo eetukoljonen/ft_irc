@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 13:48:19 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/24 14:39:26 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,17 +27,31 @@ public:
 	bool							isOperator(std::string const &nick);
 	bool							isBanned(std::string const &nick);
 	bool							isKicked(std::string const &nick);
-	bool							isInvateOnly();
+	bool							isInviteOnly();
 	void							addToChannel(User *user);
 	void							addToOperators(std::string const &nick);
 	void							addToKickList(std::string const &nick);
 	void							addToBanList(std::string const &nick);
+	void							setChannelName(std::string const &name);
+	std::string const				&getChannelName() const;
+	void							setChannelKey(std::string const &key);
+	std::string const				&getChannelkey() const;
+	std::string const				&getNickList() const;
+	std::string const				&getTopic() const;
+	int const						&getUserLimit() const;
+	int								getUserCount() const;
+	void							setInviteOnly(bool const &flag);
 private:
 	std::map<std::string, User *>	_users;
 	std::vector<std::string>		_bannedUsers;
 	std::vector<std::string>		_kickedUsers;
 	std::vector<std::string>		_operators;
-	bool							_invateOnly;
+	std::string						_topic;
+	std::string						_channelName;
+	std::string						_channelKey;
+	std::string						_nickList;
+	bool							_inviteOnly;
+	int								_userLimit;
 };
 
 #endif

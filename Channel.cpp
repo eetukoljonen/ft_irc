@@ -6,13 +6,13 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/19 13:47:56 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/24 14:48:33 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 
-Channel::Channel() : _invateOnly(false) {}
+Channel::Channel() : _inviteOnly(false), _userLimit(100) {}
 
 Channel::Channel(Channel const &cpy)
 {
@@ -20,7 +20,9 @@ Channel::Channel(Channel const &cpy)
 	_bannedUsers = cpy._bannedUsers;
 	_kickedUsers = cpy._kickedUsers;
 	_operators = cpy._operators;
-	_invateOnly = cpy._invateOnly;
+	_inviteOnly = cpy._inviteOnly;
+	_userLimit = cpy._userLimit;
+	_topic = cpy._topic;
 }
 
 Channel::~Channel(){}
@@ -33,7 +35,9 @@ Channel &Channel::operator=(Channel const &rhs)
 		_bannedUsers = rhs._bannedUsers;
 		_kickedUsers = rhs._kickedUsers;
 		_operators = rhs._operators;
-		_invateOnly = rhs._invateOnly;
+		_inviteOnly = rhs._inviteOnly;
+		_userLimit = rhs._userLimit;
+		_topic = rhs._topic;
     }
     return (*this);
 }
@@ -61,7 +65,11 @@ bool Channel::isOperator(std::string const &nick)
 
 void Channel::addToChannel(User *user)
 {
-	_users[user->getNick()] = user;
+	std::string const &nick = user->getNick();
+	_users[nick] = user;
+	if (!_nickList.empty())
+		_nickList.append(" ");
+	_nickList.append(nick);
 }
 
 void Channel::addToOperators(std::string const &nick)
@@ -79,7 +87,52 @@ void Channel::addToKickList(std::string const &nick)
 	_kickedUsers.push_back(nick);
 }
 
-bool Channel::isInvateOnly()
+bool Channel::isInviteOnly()
 {
-	return (_invateOnly);
+	return (_inviteOnly);
+}
+
+void Channel::setChannelName(std::string const &name)
+{
+	_channelName = name;
+}
+
+std::string const &Channel::getChannelName() const
+{
+	return (_channelName);
+}
+
+void Channel::setChannelKey(std::string const &key)
+{
+	_channelKey = key;
+}
+
+std::string const &Channel::getChannelkey() const
+{
+	return (_channelKey);
+}
+
+std::string const &Channel::getNickList() const
+{
+	return (_nickList);
+}
+
+std::string const &Channel::getTopic() const
+{
+	return (_topic);
+}
+
+int const &Channel::getUserLimit() const
+{
+	return (_userLimit);
+}
+
+int Channel::getUserCount() const
+{
+	return (_users.size());
+}
+
+void Channel::setInviteOnly(bool const &flag)
+{
+	_inviteOnly = flag;
 }

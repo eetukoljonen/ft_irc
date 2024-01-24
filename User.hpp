@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/22 16:31:48 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/23 15:34:42 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,9 @@ public:
 	void						setRegistrationFlag(bool flag);
 	bool const					&isPassCorrect() const;
 	void						setPassFlag(bool flag);
+	void						removeUserMode(std::string const &mode);
+	void						addUserMode(std::string const &mode);
+	std::string const			&getUserMode() const;
 private:
 	std::string					_nick;
 	std::string					_user;
@@ -64,6 +67,7 @@ private:
 	t_client					_userInfo;
 	std::vector<std::string>	_userInput;
 	std::vector<std::string>	_sendBuffer;
+	std::string					_userModes;
 	bool						_isRegistered;
 	bool						_passFlag;
 };

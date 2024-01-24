@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 16:38:54 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/22 17:01:29 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/23 17:09:07 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,7 @@ std::string const &Command::getCommand()
 {
 	return (_command);
 }
+
 
 std::vector<std::string> const &Command::getParams()
 {
