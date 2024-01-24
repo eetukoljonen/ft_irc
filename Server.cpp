@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:59:36 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/23 17:15:39 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/24 14:44:13 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,7 +148,6 @@ void Server::_runServer()
 		else if (_pollfds[i].revents & (POLLNVAL | POLLERR | POLLHUP))
 		{
 			std::cout << "POLLERR STUFF" << std::endl;
-			exit (1);
 		}
 	}
 }
@@ -255,4 +254,49 @@ Channel *Server::getChannelByName(std::string const &name) const
 	if (it == _channelMap.end())
 		return (nullptr);
 	return (it->second);
+}
+
+std::vector<struct pollfd>::iterator Server::findPollStructByFd(int fd)
+{
+	auto it = _pollfds.begin();
+	while (it != _pollfds.end())
+	{
+		if (it->fd == fd)	
+			return it;
+		it++;
+	}
+	return it;
+}
+
+void Server::deleteUser(int fd)
+{
+	auto it_map = _usersMap.find(fd);
+	auto it_poll = findPollStructByFd(fd);
+	if (it_map != _usersMap.end() && it_poll != _pollfds.end()) 
+	{
+		std::cout << "found user " << it_map->second->getNick() << std::endl;
+		close(fd);
+		_usersMap.erase(it_map);
+		_pollfds.erase(it_poll);
+	}
+	else 
+		std::cout << "User not found in map" << std::endl;
+}
+
+Channel *Server::createChannel(std::string const &name)
+{
+	Channel *channel = new Channel;
+	channel->setChannelName(name);
+	addNewChannel(channel);
+	return (channel);
+}
+
+Channel *Server::createChannel(std::string const &name, std::string const &key)
+{
+	Channel *channel = new Channel;
+	channel->setChannelName(name);
+	channel->setChannelKey(key);
+	channel->setInviteOnly(true);
+	addNewChannel(channel);
+	return (channel);
 }

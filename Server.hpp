@@ -27,34 +27,37 @@ class Server
 public:
 	Server(int port, std::string pw, std::string name = "Garbaggio");
 	~Server(){};
-	std::string const					&getName() const;
-	std::string const					&getPass() const;
-	std::map<int, User *>				&getUsersMap();
-	Channel								*getChannelByName(std::string const &name) const;
-	User								*_findUserByNick(std::string nick) const;
-	void								addNewChannel(Channel *channel);
-
+	std::string const						&getName() const;
+	std::string const						&getPass() const;
+	std::map<int, User *>					&getUsersMap();
+	Channel									*getChannelByName(std::string const &name) const;
+	User									*_findUserByNick(std::string nick) const;
+	void									addNewChannel(Channel *channel);
+	std::vector<struct pollfd>::iterator	findPollStructByFd(int fd);
+	void 									deleteUser(int fd);
+	Channel									*createChannel(std::string const &name);
+	Channel									*createChannel(std::string const &name, std::string const &key);
 private:
-	std::string 						_name;
-	std::string							_host;
-	std::string 						_pw;
-	int 								_port;
-	int 								_listeningSocket;
-	struct sockaddr_in					_serverAddr;
-	std::vector<struct pollfd>			_pollfds;
-	std::map<int, User *>				_usersMap;
-	std::map<std::string, Channel *>	_channelMap;
-	t_client							_client;
+	std::string 							_name;
+	std::string								_host;
+	std::string 							_pw;
+	int 									_port;
+	int 									_listeningSocket;
+	struct sockaddr_in						_serverAddr;
+	std::vector<struct pollfd>				_pollfds;
+	std::map<int, User *>					_usersMap;
+	std::map<std::string, Channel *>		_channelMap;
+	t_client								_client;
 
-	void 								_clientRegistration(User &user);
-	void								_runServer();
-	void								_executeCommands(User *user);
-	void								_bindSocket();
-	void								_createSocket();
-	void								_addPollFd(int fd);
-	void								_acceptClient();
-	void								_receiveMessage(int index);
-	User								*_getUserByFd(const int fd);
+	void 									_clientRegistration(User &user);
+	void									_runServer();
+	void									_executeCommands(User *user);
+	void									_bindSocket();
+	void									_createSocket();
+	void									_addPollFd(int fd);
+	void									_acceptClient();
+	void									_receiveMessage(int index);
+	User									*_getUserByFd(const int fd);
 
 };
 

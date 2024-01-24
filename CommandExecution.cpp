@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/23 16:56:44 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/24 14:52:13 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,65 @@ void CommandExecution::_join()
 		_user->addToSendBuffer(ERR_NOTREGISTERED(_server->getName()));
 		return ;
 	}
-	
+	std::vector<std::string> const &params = _command.getParams();
+	size_t paramSize = params.size();
+	if (paramSize == 0 || paramSize > 2)
+	{
+		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "JOIN"));
+		return ;
+	}
+	std::vector<std::string> channelNames = split(params[0], ',');
+	std::vector<std::string> channelKeys;
+	if (paramSize == 2)
+		channelKeys = split(params[1], ',');
+	size_t channelCount = channelNames.size();
+	size_t keyCount = channelKeys.size();
+	if (keyCount > channelCount)
+	{
+		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "JOIN"));
+		return ;
+	}
+	for (size_t i = 0; i < channelCount; i++)
+	{
+		if (channelNames[i].at(0) == '#' || channelNames[i].at(0) == '&')
+			channelNames[i] = channelNames[i].substr(1);
+		Channel *channel = _server->getChannelByName(channelNames[i]);
+		// if channel exists
+		if (channel != nullptr)
+		{
+			if (channel->isInviteOnly() && keyCount < i)
+				_user->addToSendBuffer(ERR_INVITEONLYCHAN(_server->getName(), _user->getNick(), channelNames[i]));
+			else if (channel->getUserCount() + 1 > channel->getUserLimit())
+				_user->addToSendBuffer(ERR_CHANNELISFULL(_server->getName(), _user->getNick(), channel->getChannelName()));
+			else
+			{
+				if (channel->getChannelkey().compare(channelKeys[i]))
+					_user->addToSendBuffer(ERR_BADCHANNELKEY(_server->getName(), _user->getNick(), channelNames[i]));
+				else
+				{
+					std::string const &topic = channel->getTopic();
+					if (topic.empty())
+						_user->addToSendBuffer(RPL_NOTOPIC(_server->getName(), _user->getNick(), channel->getChannelName()));
+					else
+						_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), channel->getChannelName(), channel->getTopic()));
+					_user->addToSendBuffer(RPL_NAMES(_server->getName(), channel->getChannelName(), channel->getNickList(),  _user->getNick()));
+					_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), channel->getChannelName(), _user->getNick()));
+					channel->addToChannel(_user);
+				}
+			}
+		}
+		else // creating a new channel
+		{
+			if (!channelKeys.empty() && i <= keyCount)
+				channel = _server->createChannel(channelNames[i], channelKeys[i]);
+			else
+				channel = _server->createChannel(channelNames[i]);
+			channel->addToChannel(_user);
+			_user->addToSendBuffer(RPL_NOTOPIC(_server->getName(), _user->getNick(), channel->getChannelName()));
+			_user->addToSendBuffer(RPL_NAMES(_server->getName(), channel->getChannelName(), channel->getNickList(),  _user->getNick()));
+			_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), channel->getChannelName(), _user->getNick()));
+		}
+	}
 }
 
 bool checkNick(std::string const &nick)
@@ -260,30 +318,35 @@ Client Notification: The targeted user's client is typically notified of the dis
 
 void    CommandExecution::_kill()
 {
-    //validate permissions first 
-    User *target = nullptr;
-    std::string reason = "default";
+    User *target;
+	std::string reason;
 
-    if (!_command.getParams().empty())
-    {
-        target = _server->_findUserByNick(_command.getParams()[0]);
-        // std::cout << "param = " << _command.getParams()[0] << std::endl;
-        if (target == nullptr)
-        {
-            _user->addToSendBuffer(ERR_NOSUCHNICK(_server->getName(), _user->getUser(), target->getNick()));
-            return ;
-        }
-        else //disconnect user
-        {
-            // std::cout << "target is: " << target->getNick() << std::endl;
-            close(target->getUserInfo().fd);
-            _server->getUsersMap().erase(target->getUserInfo().fd); // Further cleanup?
-            if (!_command.getParams()[1].empty())
-                reason = _command.getParams()[1];
-            target->addToSendBuffer(RPL_KILL
-                (user_id(target->getNick(), target->getUser()), target->getNick(), reason));
-        }
-    }
+	//validate permissions first
+
+	if (!_command.getParams().empty())
+	{
+		target = _server->_findUserByNick(_command.getParams()[0]);
+		if (target == nullptr)
+		{
+			_user->addToSendBuffer(ERR_NOSUCHNICK(_server->getName(), _user->getUser(), _command.getParams()[0]));
+			return ;
+		}
+		else
+		{	
+			if (_command.getParams().size() > 1 && !_command.getParams()[1].empty())
+			{
+				if (!_command.getParams()[1].compare(":"))
+					reason = ": default";
+				else
+					reason = _command.getParams()[1];
+			}
+			std::string msg = RPL_KILL(_server->getName(), target->getNick(), reason);
+			if (send(target->getUserInfo().fd, msg.c_str(), msg.size(), 0) < 0)
+				std::cout << "failed to send msg to" << target->getNick() 
+				<< ". Error: " << strerror(errno) << std::endl;
+			_server->deleteUser(target->getUserInfo().fd);
+		}
+	}
 }
 
 // void CommandExecution::_cap()
