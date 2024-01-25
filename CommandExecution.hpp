@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.hpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:01 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 12:18:06 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/25 14:06:29 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ private:
 	//join
 	static void		_join();
 	static void		_joinExistingChannel(Channel *channel, std::string const &key);
-	static void		_joinNewChannel(std::string const &name, std::string const &key);
+	static void		_joinNewChannel(std::string const &name);
 	static void		_joinSucces(Channel *channel);
 	// nick
 	static void		_nick();

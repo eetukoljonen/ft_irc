@@ -106,3 +106,4 @@
 # define RPL_ENDOFNAMES(servername, channel, client) (":" + servername + " 366 " + client + " " + channel + " :End of /NAMES list.\r\n")
 # define RPL_NOTOPIC(servername, client, channel) (":" + servername + " 331 " + client + " " + channel + " :No topic is set\r\n")
 # define RPL_JOIN(user_id, command, channel) (user_id + " " + command + " #" + channel + "\r\n")
+# define PING(servername) ()

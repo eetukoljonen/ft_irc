@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   User.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 12:18:24 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/25 16:16:00 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
+#include <time.h>
 
 typedef struct s_client
 {
@@ -72,6 +73,7 @@ private:
 	std::string					_userModes;
 	bool						_isRegistered;
 	bool						_passFlag;
+	time_t						_pingTimer;
 };
 
 #endif

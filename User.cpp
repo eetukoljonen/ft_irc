@@ -1,6 +1,6 @@
 #include "User.hpp"
 
-User::User() : _isRegistered(false), _passFlag(false) {}
+User::User() : _isRegistered(false), _passFlag(false), _pingTimer(time(0)) {}
 
 User::User(User const &cpy)
 {
@@ -12,6 +12,7 @@ User::User(User const &cpy)
 	_sendBuffer = cpy._sendBuffer;
 	_isRegistered = cpy._isRegistered;
 	_passFlag = cpy._passFlag;
+	_pingTimer = cpy._pingTimer;
 }
 
 User::~User(){}
@@ -28,6 +29,7 @@ User &User::operator=(User const &rhs)
 		_sendBuffer = rhs._sendBuffer;
 		_isRegistered = rhs._isRegistered;
 		_passFlag = rhs._passFlag;
+		_pingTimer = rhs._pingTimer;
     }
     return (*this);
 }

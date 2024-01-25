@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 12:41:59 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/25 15:21:34 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		"PASS",
 		"CAP",
 		"MOTD",
-		"kill",
+		"KILL",
 		"MODE",
 		"KICK"
     };
@@ -109,20 +109,9 @@ void CommandExecution::_joinExistingChannel(Channel *channel, std::string const 
 	}
 }
 
-void CommandExecution::_joinNewChannel(std::string const &name, std::string const &key)
+void CommandExecution::_joinNewChannel(std::string const &name)
 {
-	//if user gives a key and it doesnt match the irc pattern
-	if (!key.empty() && !checkIrcPattern(key))
-	{
-		_user->addToSendBuffer(ERR_BADCHANNELKEY(_server->getName(), _user->getNick(), name));
-		return ;
-	}
-	Channel *channel;
-	// creates an invite only channel with a key
-	if (!key.empty())
-		channel = _server->createChannel(name, key);
-	else // creates a channel without a key
-		channel = _server->createChannel(name);
+	Channel *channel = _server->createChannel(name);
 	channel->addToOperators(_user->getNick());
 	_joinSucces(channel);
 }
@@ -148,14 +137,14 @@ void CommandExecution::_join()
 	}
 	std::vector<std::string> const &params = _command.getParams();
 	size_t paramSize = params.size();
-	if (paramSize == 0 || paramSize > 2)
+	if (paramSize == 0)
 	{
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "JOIN"));
 		return ;
 	}
 	std::vector<std::string> const &channelNames = split(params[0], ',');
 	std::vector<std::string> channelKeys;
-	if (paramSize == 2)
+	if (paramSize >= 2)
 		channelKeys = split(params[1], ',');
 	size_t channelCount = channelNames.size();
 	size_t keyCount = channelKeys.size();
@@ -172,14 +161,13 @@ void CommandExecution::_join()
 			std::string channelKey;
 			if (i < keyCount)
 				channelKey = channelKeys[i];
-			if (channelNames[i].at(0) == '#' || channelNames[i].at(0) == '&')
-				channelName = channelNames[i].substr(1);
+			channelName = channelNames[i].substr(1); //removing the prefix
 			Channel *channel = _server->getChannelByName(channelName);
 			// if channel exists
 			if (channel != nullptr)
 				_joinExistingChannel(channel, channelKey);
 			else // creating a new channel
-				_joinNewChannel(channelName, channelKey);
+				_joinNewChannel(channelName);
 		}
 		else
 			_user->addToSendBuffer(ERR_BADCHANMASK(_server->getName(), _user->getNick(), channelName));
@@ -387,11 +375,11 @@ void    CommandExecution::_kill()
 void	CommandExecution::_kick()
 {
 	Channel *channel = _server->getChannelByName(_command.getParams()[1]);
-	std::string serverName = _server->getName();
-	std::string userName = _user->getNick();
-	std::string channelName = channel->getChannelName();
-	std::string command = _command.getCommand();
-	std::string kicker = _user->getNick();
+	std::string const &serverName = _server->getName();
+	std::string const &userName = _user->getNick();
+	std::string const &channelName = channel->getChannelName();
+	std::string const &command = _command.getCommand();
+	std::string const &kicker = _user->getNick();
 
 	//check channel
 	if (channel == nullptr)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/01/25 12:25:57 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/25 16:33:42 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -293,12 +293,31 @@ Channel *Server::createChannel(std::string const &name)
 	return (channel);
 }
 
-Channel *Server::createChannel(std::string const &name, std::string const &key)
+//probably wont need this
+// Channel *Server::createChannel(std::string const &name, std::string const &key)
+// {
+// 	Channel *channel = new Channel;
+// 	channel->setChannelName(name);
+// 	channel->setChannelKey(key);
+// 	channel->setInviteOnly(true);
+// 	addNewChannel(channel);
+// 	return (channel);
+// }
+
+//todo PING AND PONG
+
+void Server::_broadcastServer(std::string const &msg)
 {
-	Channel *channel = new Channel;
-	channel->setChannelName(name);
-	channel->setChannelKey(key);
-	channel->setInviteOnly(true);
-	addNewChannel(channel);
-	return (channel);
+	std::map<int, User *>::iterator it = _usersMap.begin();
+	std::map<int, User *>::iterator ite = _usersMap.end();
+	while (it != ite)
+	{
+		it->second->addToSendBuffer(msg);
+		it++;
+	}
+}
+
+void Server::_pingUsers()
+{
+	_broadcastServer()
 }
