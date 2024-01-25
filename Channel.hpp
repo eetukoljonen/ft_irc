@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/24 17:08:01 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/25 11:56:05 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,8 +41,12 @@ public:
 	int const						&getUserLimit() const;
 	int								getUserCount() const;
 	void							setInviteOnly(bool const &flag);
-	bool 							&UserOnChannel();
-	User 							*getUser() const;
+	bool 							UserOnChannel(std::string const &nick);
+	User 							*getUser(std::string const &nick) const;
+	void							broadcastToChannel(const std::string& msg);
+	std::map<std::string, User *>	&getUsersMap();
+	void							removeFromChannel(std::string const &nick);
+	
 private:
 	std::map<std::string, User *>	_users;
 	std::vector<std::string>		_bannedUsers;

@@ -56,5 +56,8 @@
     (":" + server + " 442 " + client + " " + channel + " :You're not on that channel\r\n")
 # define RPL_KICK(server, channel, kicked, reason) \
     (":" + server + " KICK " + channel + " " + kicked + " :" + reason + "\r\n")
-# define ERR_NOSUCHCHANNEL(server, client, channel) \
-    (":" + server + " 403 " + client + " " + channel + " :No such channel\r\n")
+
+# define RPL_KICKEDFROMCHANNEL(server, kickerNick, channel, kickedUser, reason) \
+    (":" + server + " KICK " + channel + " " + kickedUser + " :" + kickerNick + " " + reason + "\r\n")
+# define RPL_KICKBROADCAST(server, channel, kicker, kicked, reason) \
+    (":" + kicker + "!" + server + " KICK " + channel + " " + kicked + " :" + reason + "\r\n")

@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/24 17:14:04 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/25 11:55:56 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,17 +137,41 @@ void Channel::setInviteOnly(bool const &flag)
 	_inviteOnly = flag;
 }
 
-bool& Channel::UserOnChannel(std::string const &nick)
+bool Channel::UserOnChannel(std::string const &nick)
 {
-	if (std::find(_users.begin(), _users.end(), nick) != _users.end())
+	auto it = _users.find(nick);
+	if (it != _users.end())
 		return (true);
 	return (false);
 }
 
 User	*Channel::getUser(std::string const &nick) const
 {
-	std::map<std::string, User *>::iterator it = _users.find(nick);
+	std::map<std::string, User *>::const_iterator it = _users.find(nick);
 	if (it != _users.end())
 		return it->second;
 	return (nullptr);
+}
+
+std::map<std::string, User *>	&Channel::getUsersMap()
+{
+	return _users;
+}
+
+void Channel::broadcastToChannel(std::string const & msg) 
+{
+	std::map<std::string, User *> usersMap = getUsersMap();
+	std::map<std::string, User *>::iterator it;
+	
+    for(it = usersMap.begin(); it != usersMap.end(); ++it)
+	{
+        it->second->addToSendBuffer(msg);
+	}
+}
+
+void	Channel::removeFromChannel(std::string const &nick)
+{
+	std::map<std::string, User *>::iterator it = _users.find(nick);
+	if (it != _users.end())
+		_users.erase(it);
 }
