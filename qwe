@@ -1,4 +1,3 @@
-<< QUIT :leaving
 << CAP LS 302
 << JOIN :
 >> :Garbaggio 451 :Register first.
@@ -11,10 +10,9 @@
 << JOIN #asd
 >> :AT!atuliara@127.0.0.1 JOIN #asd
 >> :Garbaggio 331 AT asd :No topic is set
->> :Garbaggio 353 AT asd :AT
+>> :Garbaggio 353 AT asd :
 >> :Garbaggio 366 AT asd :End of /NAMES list.
 << MODE #asd
 << PING Garbaggio
-<< KICK #asd lel :oweriweri
->> :Garbaggio 442 atuliara asd :You're not on that channel
-<< QUIT :leaving
+<< KICK #asd ewr :owiejroijwer
+>> :AT!atuliara@Garbaggio KICK asd ewr ::owiejroijwer

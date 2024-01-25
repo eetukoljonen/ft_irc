@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 12:29:29 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/25 14:35:11 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,4 +180,10 @@ void	Channel::removeFromChannel(std::string const &nick)
 	std::map<std::string, User *>::iterator it = _users.find(nick);
 	if (it != _users.end())
 		_users.erase(it);
+	_kickedUsers.push_back(nick);
+	size_t i = _nickList.find(nick);
+	// std::cout << "nicklist bfore = " << _nickList << std::endl;
+	if (i != std::string::npos)
+		_nickList.erase(i, nick.size() + 1);
+	// std::cout << "nicklist after = " << _nickList << std::endl;
 }

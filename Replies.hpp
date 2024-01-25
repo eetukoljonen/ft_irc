@@ -81,13 +81,21 @@
     (":" + server + " 442 " + client + " " + channel + " :You're not on that channel\r\n")
 # define RPL_KICK(server, channel, kicked, reason) \
     (":" + server + " KICK " + channel + " " + kicked + " :" + reason + "\r\n")
+// # define RPL_KICKBROADCAST(server, channel, kicker, kicked, reason) \
+//     (":" + kicker + "!" + server + " KICK " + channel + " " + kicked + reason + "\r\n")
+
+# define RPL_KICKEDCLIENT(server, kickerNick, channel, kickedUser, reason) \
+    (":" + kickerNick + "!" + server + " KICK " + channel + " " + kickedUser + " :" + reason + "\r\n")
+# define RPL_KICKBROADCAST(kickerNick, kickerUsername, serverName, channel, kicked, reason) \
+    (user_id(kickerNick, kickerUsername, serverName) + " KICK #" + channel + " " + kicked + " " + reason + "\r\n")
+
+// :[KickerNick]![Server] KICK [Channel] [KickedUser] :[Reason]\r\n
+// :[UserID] KICK [Channel] [Kicked] :[Reason]\r\n
+
 
 # define RPL_UMODEIS(servername, client, user_modes) (":" + servername + " 221 " + client + " :" + user_modes + "\r\n")
 # define ERR_UMODEUNKNOWNFLAG(servername, client, unknown_mode) (":" + servername + " * 501 " + client + " :Unknown mode flag '" + unknown_mode + "'\r\n")
-# define RPL_KICKBROADCAST(server, channel, kicker, kicked, reason) \
-    (":" + kicker + "!" + server + " KICK " + channel + " " + kicked + " :" + reason + "\r\n")
-# define RPL_KICKEDFROMCHANNEL(server, kickerNick, channel, kickedUser, reason) \
-    (":" + server + " KICK " + channel + " " + kickedUser + " :" + kickerNick + " " + reason + "\r\n")
+
 
 
 
