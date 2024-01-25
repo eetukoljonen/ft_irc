@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 11:48:23 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/25 12:18:24 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,8 @@ public:
 	void						removeUserMode(std::string const &mode);
 	void						addUserMode(std::string const &mode);
 	std::string const			&getUserMode() const;
-
+	std::string const			&getIP() const;
+	void						setIP(std::string const &ip);
 private:
 	std::string					_nick;
 	std::string					_user;

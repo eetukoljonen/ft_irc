@@ -65,9 +65,8 @@
 		"fstream": "cpp",
 		"iomanip": "cpp",
 		"map": "cpp",
-		"regex": "cpp",
 		"stack": "cpp",
-		"filesystem": "cpp"
+		"regex": "cpp"
 	},
 	"C_Cpp.errorSquiggles": "enabled"
 }

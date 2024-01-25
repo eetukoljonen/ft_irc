@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 11:56:50 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/25 12:17:28 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,64 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 	}
 }
 
+void CommandExecution::_joinSucces(Channel *channel)
+{
+	_user->addToSendBuffer(RPL_JOIN(user_id(_user->getNick(), _user->getUser(), _user->getIP()), "JOIN", channel->getChannelName()));
+	std::string const &topic = channel->getTopic();
+	if (topic.empty())
+		_user->addToSendBuffer(RPL_NOTOPIC(_server->getName(), _user->getNick(), channel->getChannelName()));
+	else
+		_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), channel->getChannelName(), channel->getTopic()));
+	_user->addToSendBuffer(RPL_NAMES(_server->getName(), channel->getChannelName(), channel->getNickList(),  _user->getNick()));
+	_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), channel->getChannelName(), _user->getNick()));
+	channel->addToChannel(_user);
+}
+
+void CommandExecution::_joinExistingChannel(Channel *channel, std::string const &key)
+{
+	if (channel->isInviteOnly() && key.empty())
+		_user->addToSendBuffer(ERR_INVITEONLYCHAN(_server->getName(), _user->getNick(), channel->getChannelName()));
+	else if (channel->getUserCount() == channel->getUserLimit())
+		_user->addToSendBuffer(ERR_CHANNELISFULL(_server->getName(), _user->getNick(), channel->getChannelName()));
+	else
+	{
+		if (channel->isInviteOnly() && channel->getChannelkey().compare(key))
+			_user->addToSendBuffer(ERR_BADCHANNELKEY(_server->getName(), _user->getNick(), channel->getChannelName()));
+		else
+			_joinSucces(channel);
+	}
+}
+
+void CommandExecution::_joinNewChannel(std::string const &name, std::string const &key)
+{
+	//if user gives a key and it doesnt match the irc pattern
+	if (!key.empty() && !checkIrcPattern(key))
+	{
+		_user->addToSendBuffer(ERR_BADCHANNELKEY(_server->getName(), _user->getNick(), name));
+		return ;
+	}
+	Channel *channel;
+	// creates an invite only channel with a key
+	if (!key.empty())
+		channel = _server->createChannel(name, key);
+	else // creates a channel without a key
+		channel = _server->createChannel(name);
+	channel->addToOperators(_user->getNick());
+	_joinSucces(channel);
+}
+
+bool isValidChannelName(std::string const &channelName)
+{
+	if (channelName.empty() || channelName.size() >= 50)
+		return (false);
+	if (channelName.at(0) != '#' && channelName.at(0) != '&'
+		&& channelName.at(0) != '!' && channelName.at(0) != '+')
+		return (false);
+	if (!checkIrcPattern(&channelName[1]))
+		return (false);
+	return (true);
+}
+
 void CommandExecution::_join()
 {
 	if (!_user->isRegistered())
@@ -95,7 +153,7 @@ void CommandExecution::_join()
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "JOIN"));
 		return ;
 	}
-	std::vector<std::string> channelNames = split(params[0], ',');
+	std::vector<std::string> const &channelNames = split(params[0], ',');
 	std::vector<std::string> channelKeys;
 	if (paramSize == 2)
 		channelKeys = split(params[1], ',');
@@ -108,54 +166,33 @@ void CommandExecution::_join()
 	}
 	for (size_t i = 0; i < channelCount; i++)
 	{
-		if (channelNames[i].at(0) == '#' || channelNames[i].at(0) == '&')
-			channelNames[i] = channelNames[i].substr(1);
-		Channel *channel = _server->getChannelByName(channelNames[i]);
-		// if channel exists
-		if (channel != nullptr)
+		std::string channelName = channelNames[i];
+		if (isValidChannelName(channelName))
 		{
-			if (channel->isInviteOnly() && keyCount < i)
-				_user->addToSendBuffer(ERR_INVITEONLYCHAN(_server->getName(), _user->getNick(), channelNames[i]));
-			else if (channel->getUserCount() + 1 > channel->getUserLimit())
-				_user->addToSendBuffer(ERR_CHANNELISFULL(_server->getName(), _user->getNick(), channel->getChannelName()));
-			else
-			{
-				if (channel->getChannelkey().compare(channelKeys[i]))
-					_user->addToSendBuffer(ERR_BADCHANNELKEY(_server->getName(), _user->getNick(), channelNames[i]));
-				else
-				{
-					std::string const &topic = channel->getTopic();
-					if (topic.empty())
-						_user->addToSendBuffer(RPL_NOTOPIC(_server->getName(), _user->getNick(), channel->getChannelName()));
-					else
-						_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), channel->getChannelName(), channel->getTopic()));
-					_user->addToSendBuffer(RPL_NAMES(_server->getName(), channel->getChannelName(), channel->getNickList(),  _user->getNick()));
-					_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), channel->getChannelName(), _user->getNick()));
-					channel->addToChannel(_user);
-				}
-			}
+			std::string channelKey;
+			if (i < keyCount)
+				channelKey = channelKeys[i];
+			if (channelNames[i].at(0) == '#' || channelNames[i].at(0) == '&')
+				channelName = channelNames[i].substr(1);
+			Channel *channel = _server->getChannelByName(channelName);
+			// if channel exists
+			if (channel != nullptr)
+				_joinExistingChannel(channel, channelKey);
+			else // creating a new channel
+				_joinNewChannel(channelName, channelKey);
 		}
-		else // creating a new channel
-		{
-			if (!channelKeys.empty() && i <= keyCount)
-				channel = _server->createChannel(channelNames[i], channelKeys[i]);
-			else
-				channel = _server->createChannel(channelNames[i]);
-			channel->addToChannel(_user);
-			_user->addToSendBuffer(RPL_NOTOPIC(_server->getName(), _user->getNick(), channel->getChannelName()));
-			_user->addToSendBuffer(RPL_NAMES(_server->getName(), channel->getChannelName(), channel->getNickList(),  _user->getNick()));
-			_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), channel->getChannelName(), _user->getNick()));
-		}
+		else
+			_user->addToSendBuffer(ERR_BADCHANMASK(_server->getName(), _user->getNick(), channelName));
 	}
 }
 
-bool checkNick(std::string const &nick)
-{
-    // Regular expression for a valid IRC nickname
-    std::regex nicknamePattern("^[A-Za-z[\\]^_`][A-Za-z0-9[\\]^_`]*$");
-    // Check if the nickname matches the pattern
-    return (std::regex_match(nick, nicknamePattern));
-}
+// bool checkIrcPattern(std::string const &str)
+// {
+//     // Regular expression for a valid IRC nickname
+//     std::regex ircPattern("^[A-Za-z[\\]^_`][A-Za-z0-9[\\]^_`]*$");
+//     // Check if the nickname matches the pattern
+//     return (std::regex_match(str, ircPattern));
+// }
 
 bool CommandExecution::_isValidNick()
 {
@@ -181,7 +218,7 @@ bool CommandExecution::_isValidNick()
 		_user->addToSendBuffer(ERR_ERRONEUSNICKNAME(_server->getName(), nick));
 		return (false);
 	}
-	if (!checkNick(nick))
+	if (!checkIrcPattern(nick))
 	{
 		_user->addToSendBuffer(ERR_ERRONEUSNICKNAME(_server->getName(), nick));
 		return (false);
@@ -202,7 +239,7 @@ void CommandExecution::_nick()
 	if (!_user->isRegistered() && !_user->getUser().empty() && _user->isPassCorrect())
 	{
 		_user->setRegistrationFlag(true);
-		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser()), _user->getNick()));
+		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
 	}
 }
 
@@ -220,23 +257,15 @@ void CommandExecution::_userF()
 {
 	if (_command.getParams().empty())
 	{
-		std::cout << "adding to send buffer" << std::endl;
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), _command.getCommand()));
+		return ;
 	}
-	size_t size = _command.getParams().size();
-	for (size_t i = 0; i < size; i++)
+	std::string user = _command.getParams().at(0);
+	_user->setUser(user);
+	if (!_user->isRegistered() && !_user->getNick().empty() && _user->isPassCorrect())
 	{
-		if (_command.getParams()[i].find(":") != std::string::npos)
-		{
-			std::string user = _command.getParams().at(i).substr(1, _command.getParams().at(i).size());
-			_user->setUser(user);
-			if (!_user->isRegistered() && !_user->getNick().empty() && _user->isPassCorrect())
-			{
-				_user->setRegistrationFlag(true);
-				_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser()), _user->getNick()));
-			}
-			break ;
-		}
+		_user->setRegistrationFlag(true);
+		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
 	}
 }
 
@@ -308,7 +337,7 @@ void CommandExecution::_pass()
 	if (!_user->isRegistered() && !_user->getNick().empty() && !_user->getUser().empty())
 	{
 		_user->setRegistrationFlag(true);
-		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser()), _user->getNick()));
+		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
 	}
 }
 
@@ -324,6 +353,7 @@ Optionally, propagate the KILL command to other servers if the IRC network is co
 Client Notification: The targeted user's client is typically notified of the disconnection and the reason provided.
 */
 
+void    CommandExecution::_kill()
 void    CommandExecution::_kill()
 {
     User *target;

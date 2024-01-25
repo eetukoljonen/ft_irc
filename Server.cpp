@@ -3,12 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/01/15 14:59:36 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/24 14:44:13 by ekoljone         ###   ########.fr       */
+/*   Created: Invalid date        by                   #+#    #+#             */
+/*   Updated: 2024/01/25 12:12:37 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #include "Server.hpp"
 
@@ -60,38 +61,39 @@ void Server::_acceptClient()
 		_addPollFd(newUser->getUserInfo().fd);
 		std::cout << "new connection: " << std::string(inet_ntoa(newUser->getUserInfo().addr.sin_addr), 0, INET_ADDRSTRLEN + 1) << std::endl;
 		_usersMap[newUser->getUserInfo().fd] = newUser;
+		newUser->setIP(inet_ntoa(newUser->getUserInfo().addr.sin_addr));
 	}
 }
 
-void	Server::_clientRegistration(User &user)
-{
-	user.addToSendBuffer(RPL_WELCOME(_name, user_id(user.getNick(), user.getUser()), user.getNick()));
-	//handle rest rpl later
+// void	Server::_clientRegistration(User &user)
+// {
+// 	user.addToSendBuffer(RPL_WELCOME(_name, user_id(user.getNick(), user.getUser()), user.getNick()));
+// 	//handle rest rpl later
 	
-	std::ifstream		data;
-	char				filepath[5] = "motd";
+// 	std::ifstream		data;
+// 	char				filepath[5] = "motd";
 
-	data.open(filepath);
-	if (!data)
-	{
-		user.addToSendBuffer(ERR_NOMOTD(_name, user.getNick()));
-		return ;
-	}
-	else
-	{
-		std::string		motd_lines;
-		std::string		buf;
+// 	data.open(filepath);
+// 	if (!data)
+// 	{
+// 		user.addToSendBuffer(ERR_NOMOTD(_name, user.getNick()));
+// 		return ;
+// 	}
+// 	else
+// 	{
+// 		std::string		motd_lines;
+// 		std::string		buf;
 		
-		buf = RPL_MOTDSTART(user.getNick(), "ft_irc (localhost)");
-		while (getline(data, motd_lines))
-		{
-			buf += RPL_MOTD(_name, user.getNick(), motd_lines);
-		}
-		buf += RPL_ENDOFMOTD(_name, user.getNick());
-		user.addToSendBuffer(buf);
-	}
-	data.close();
-}
+// 		buf = RPL_MOTDSTART(user.getNick(), "ft_irc (localhost)");
+// 		while (getline(data, motd_lines))
+// 		{
+// 			buf += RPL_MOTD(_name, user.getNick(), motd_lines);
+// 		}
+// 		buf += RPL_ENDOFMOTD(_name, user.getNick());
+// 		user.addToSendBuffer(buf);
+// 	}
+// 	data.close();
+// }
 
 void Server::_executeCommands(User *user)
 {
@@ -227,6 +229,7 @@ std::string const &Server::getPass() const {
 }
 
 std::map<int, User *> &Server::getUsersMap() {
+std::map<int, User *> &Server::getUsersMap() {
 	return _usersMap;
 }
 
@@ -241,6 +244,64 @@ User *Server::_findUserByNick(std::string nick) const
 		it++;
 	}
 	return nullptr;
+}
+
+void Server::addNewChannel(Channel *channel)
+{
+	_channelMap[channel->getChannelName()] = channel;
+}
+
+Channel *Server::getChannelByName(std::string const &name) const
+{
+	std::map<std::string, Channel *>::const_iterator it = _channelMap.find(name);
+	if (it == _channelMap.end())
+		return (nullptr);
+	return (it->second);
+}
+
+std::vector<struct pollfd>::iterator Server::findPollStructByFd(int fd)
+{
+	auto it = _pollfds.begin();
+	while (it != _pollfds.end())
+	{
+		if (it->fd == fd)	
+			return it;
+		it++;
+	}
+	return it;
+}
+
+void Server::deleteUser(int fd)
+{
+	auto it_map = _usersMap.find(fd);
+	auto it_poll = findPollStructByFd(fd);
+	if (it_map != _usersMap.end() && it_poll != _pollfds.end()) 
+	{
+		std::cout << "found user " << it_map->second->getNick() << std::endl;
+		close(fd);
+		_usersMap.erase(it_map);
+		_pollfds.erase(it_poll);
+	}
+	else 
+		std::cout << "User not found in map" << std::endl;
+}
+
+Channel *Server::createChannel(std::string const &name)
+{
+	Channel *channel = new Channel;
+	channel->setChannelName(name);
+	addNewChannel(channel);
+	return (channel);
+}
+
+Channel *Server::createChannel(std::string const &name, std::string const &key)
+{
+	Channel *channel = new Channel;
+	channel->setChannelName(name);
+	channel->setChannelKey(key);
+	channel->setInviteOnly(true);
+	addNewChannel(channel);
+	return (channel);
 }
 
 void Server::addNewChannel(Channel *channel)

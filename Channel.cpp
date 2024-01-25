@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 11:55:56 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/25 12:07:18 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,9 @@ Channel::Channel(Channel const &cpy)
 	_inviteOnly = cpy._inviteOnly;
 	_userLimit = cpy._userLimit;
 	_topic = cpy._topic;
+	_inviteOnly = cpy._inviteOnly;
+	_userLimit = cpy._userLimit;
+	_topic = cpy._topic;
 }
 
 Channel::~Channel(){}
@@ -35,6 +38,9 @@ Channel &Channel::operator=(Channel const &rhs)
 		_bannedUsers = rhs._bannedUsers;
 		_kickedUsers = rhs._kickedUsers;
 		_operators = rhs._operators;
+		_inviteOnly = rhs._inviteOnly;
+		_userLimit = rhs._userLimit;
+		_topic = rhs._topic;
 		_inviteOnly = rhs._inviteOnly;
 		_userLimit = rhs._userLimit;
 		_topic = rhs._topic;
@@ -128,6 +134,47 @@ int const &Channel::getUserLimit() const
 }
 
 int Channel::getUserCount() const
+bool Channel::isInviteOnly()
+{
+	return (_inviteOnly);
+}
+
+void Channel::setChannelName(std::string const &name)
+{
+	_channelName = name;
+}
+
+std::string const &Channel::getChannelName() const
+{
+	return (_channelName);
+}
+
+void Channel::setChannelKey(std::string const &key)
+{
+	_channelKey = key;
+}
+
+std::string const &Channel::getChannelkey() const
+{
+	return (_channelKey);
+}
+
+std::string const &Channel::getNickList() const
+{
+	return (_nickList);
+}
+
+std::string const &Channel::getTopic() const
+{
+	return (_topic);
+}
+
+int const &Channel::getUserLimit() const
+{
+	return (_userLimit);
+}
+
+int Channel::getUserCount() const
 {
 	return (_users.size());
 }
@@ -169,6 +216,10 @@ void Channel::broadcastToChannel(std::string const & msg)
 	}
 }
 
+void Channel::setInviteOnly(bool const &flag)
+{
+	_inviteOnly = flag;
+}
 void	Channel::removeFromChannel(std::string const &nick)
 {
 	std::map<std::string, User *>::iterator it = _users.find(nick);
