@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 12:17:28 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/25 12:26:47 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -353,7 +353,6 @@ Optionally, propagate the KILL command to other servers if the IRC network is co
 Client Notification: The targeted user's client is typically notified of the disconnection and the reason provided.
 */
 
-void    CommandExecution::_kill()
 void    CommandExecution::_kill()
 {
     User *target;

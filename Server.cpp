@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/01/25 12:12:37 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/25 12:25:57 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -229,7 +229,6 @@ std::string const &Server::getPass() const {
 }
 
 std::map<int, User *> &Server::getUsersMap() {
-std::map<int, User *> &Server::getUsersMap() {
 	return _usersMap;
 }
 
@@ -244,64 +243,6 @@ User *Server::_findUserByNick(std::string nick) const
 		it++;
 	}
 	return nullptr;
-}
-
-void Server::addNewChannel(Channel *channel)
-{
-	_channelMap[channel->getChannelName()] = channel;
-}
-
-Channel *Server::getChannelByName(std::string const &name) const
-{
-	std::map<std::string, Channel *>::const_iterator it = _channelMap.find(name);
-	if (it == _channelMap.end())
-		return (nullptr);
-	return (it->second);
-}
-
-std::vector<struct pollfd>::iterator Server::findPollStructByFd(int fd)
-{
-	auto it = _pollfds.begin();
-	while (it != _pollfds.end())
-	{
-		if (it->fd == fd)	
-			return it;
-		it++;
-	}
-	return it;
-}
-
-void Server::deleteUser(int fd)
-{
-	auto it_map = _usersMap.find(fd);
-	auto it_poll = findPollStructByFd(fd);
-	if (it_map != _usersMap.end() && it_poll != _pollfds.end()) 
-	{
-		std::cout << "found user " << it_map->second->getNick() << std::endl;
-		close(fd);
-		_usersMap.erase(it_map);
-		_pollfds.erase(it_poll);
-	}
-	else 
-		std::cout << "User not found in map" << std::endl;
-}
-
-Channel *Server::createChannel(std::string const &name)
-{
-	Channel *channel = new Channel;
-	channel->setChannelName(name);
-	addNewChannel(channel);
-	return (channel);
-}
-
-Channel *Server::createChannel(std::string const &name, std::string const &key)
-{
-	Channel *channel = new Channel;
-	channel->setChannelName(name);
-	channel->setChannelKey(key);
-	channel->setInviteOnly(true);
-	addNewChannel(channel);
-	return (channel);
 }
 
 void Server::addNewChannel(Channel *channel)

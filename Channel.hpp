@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 12:10:44 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/25 12:22:22 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,6 @@ public:
 	bool							isBanned(std::string const &nick);
 	bool							isKicked(std::string const &nick);
 	bool							isInviteOnly();
-	bool							isInviteOnly();
 	void							addToChannel(User *user);
 	void							addToOperators(std::string const &nick);
 	void							addToKickList(std::string const &nick);
@@ -42,21 +41,14 @@ public:
 	int const						&getUserLimit() const;
 	int								getUserCount() const;
 	void							setInviteOnly(bool const &flag);
+	
+	
 	bool 							UserOnChannel(std::string const &nick);
 	User 							*getUser(std::string const &nick) const;
 	void							broadcastToChannel(const std::string& msg);
 	std::map<std::string, User *>	&getUsersMap();
 	void							removeFromChannel(std::string const &nick);
 	
-	void							setChannelName(std::string const &name);
-	std::string const				&getChannelName() const;
-	void							setChannelKey(std::string const &key);
-	std::string const				&getChannelkey() const;
-	std::string const				&getNickList() const;
-	std::string const				&getTopic() const;
-	int const						&getUserLimit() const;
-	int								getUserCount() const;
-	void							setInviteOnly(bool const &flag);
 private:
 	std::map<std::string, User *>	_users;
 	std::vector<std::string>		_bannedUsers;
@@ -68,12 +60,7 @@ private:
 	std::string						_nickList;
 	bool							_inviteOnly;
 	int								_userLimit;
-	std::string						_topic;
-	std::string						_channelName;
-	std::string						_channelKey;
-	std::string						_nickList;
-	bool							_inviteOnly;
-	int								_userLimit;
+
 };
 
 #endif
