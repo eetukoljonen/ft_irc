@@ -189,3 +189,13 @@ std::string const &User::getUserMode() const
 {
 	return (_userModes);
 }
+
+std::string const &User::getIP() const
+{
+	return (_ipAddr);
+}
+
+void User::setIP(std::string const &ip)
+{
+	_ipAddr = ip;
+}

@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:01 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/24 17:09:06 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/25 10:47:18 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include "Utils.hpp"
 #include <regex>
 #include "Channel.hpp"
+#include <algorithm>
 
 class Server;
 

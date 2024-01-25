@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:59:36 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/24 16:22:54 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/25 11:48:48 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,38 +60,39 @@ void Server::_acceptClient()
 		_addPollFd(newUser->getUserInfo().fd);
 		std::cout << "new connection: " << std::string(inet_ntoa(newUser->getUserInfo().addr.sin_addr), 0, INET_ADDRSTRLEN + 1) << std::endl;
 		_usersMap[newUser->getUserInfo().fd] = newUser;
+		newUser->setIP(inet_ntoa(newUser->getUserInfo().addr.sin_addr));
 	}
 }
 
-void	Server::_clientRegistration(User &user)
-{
-	user.addToSendBuffer(RPL_WELCOME(_name, user_id(user.getNick(), user.getUser()), user.getNick()));
-	//handle rest rpl later
+// void	Server::_clientRegistration(User &user)
+// {
+// 	user.addToSendBuffer(RPL_WELCOME(_name, user_id(user.getNick(), user.getUser()), user.getNick()));
+// 	//handle rest rpl later
 	
-	std::ifstream		data;
-	char				filepath[5] = "motd";
+// 	std::ifstream		data;
+// 	char				filepath[5] = "motd";
 
-	data.open(filepath);
-	if (!data)
-	{
-		user.addToSendBuffer(ERR_NOMOTD(_name, user.getNick()));
-		return ;
-	}
-	else
-	{
-		std::string		motd_lines;
-		std::string		buf;
+// 	data.open(filepath);
+// 	if (!data)
+// 	{
+// 		user.addToSendBuffer(ERR_NOMOTD(_name, user.getNick()));
+// 		return ;
+// 	}
+// 	else
+// 	{
+// 		std::string		motd_lines;
+// 		std::string		buf;
 		
-		buf = RPL_MOTDSTART(user.getNick(), "ft_irc (localhost)");
-		while (getline(data, motd_lines))
-		{
-			buf += RPL_MOTD(_name, user.getNick(), motd_lines);
-		}
-		buf += RPL_ENDOFMOTD(_name, user.getNick());
-		user.addToSendBuffer(buf);
-	}
-	data.close();
-}
+// 		buf = RPL_MOTDSTART(user.getNick(), "ft_irc (localhost)");
+// 		while (getline(data, motd_lines))
+// 		{
+// 			buf += RPL_MOTD(_name, user.getNick(), motd_lines);
+// 		}
+// 		buf += RPL_ENDOFMOTD(_name, user.getNick());
+// 		user.addToSendBuffer(buf);
+// 	}
+// 	data.close();
+// }
 
 void Server::_executeCommands(User *user)
 {

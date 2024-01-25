@@ -1,5 +1,4 @@
-
-# define user_id(nickname, username) (":" + nickname + "!" + username + "@localhost")
+# define user_id(nickname, username, user_ip) (":" + nickname + "!" + username + "@" + user_ip)
 
 # define ERR_NOTREGISTERED(servername)(":" + servername + " 451 :Register first.\r\n")
 # define RPL_WELCOME(server, user_id, nickname) (":" + server + " 001 " + nickname + " :Welcome to the Internet Relay Network " + user_id + "\r\n")
@@ -47,3 +46,4 @@
 # define RPL_NAMES(servername, channel, userlist, client) (":" + servername + " 353 " + client + " " + channel + " :" + userlist + "\r\n")
 # define RPL_ENDOFNAMES(servername, channel, client) (":" + servername + " 366 " + client + " " + channel + " :End of /NAMES list.\r\n")
 # define RPL_NOTOPIC(servername, client, channel) (":" + servername + " 331 " + client + " " + channel + " :No topic is set\r\n")
+# define RPL_JOIN(user_id, command, channel) (user_id + " " + command + " #" + channel + "\r\n")
