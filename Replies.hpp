@@ -106,4 +106,8 @@
 # define RPL_ENDOFNAMES(servername, channel, client) (":" + servername + " 366 " + client + " " + channel + " :End of /NAMES list.\r\n")
 # define RPL_NOTOPIC(servername, client, channel) (":" + servername + " 331 " + client + " " + channel + " :No topic is set\r\n")
 # define RPL_JOIN(user_id, command, channel) (user_id + " " + command + " #" + channel + "\r\n")
-# define PING(servername) ()
+//PING PONG
+# define PING(servername, msg) (":" + servername + " PING :" + msg + "\r\n")
+# define PONG(servername, msg) (":" + servername + " PONG " + servername + " :" + msg + "\r\n")
+# define ERR_NOORIGIN(servername) (":" + servername + " 409 :No origin specified\r\n")
+# define ERR_NOSUCHSERVER(servername, parameter) (":" + servername + " 402 " + parameter + " :No such server\r\n")

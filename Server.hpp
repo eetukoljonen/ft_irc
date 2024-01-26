@@ -20,6 +20,7 @@
 #include "CommandExecution.hpp"
 #include "Replies.hpp"
 #include "Channel.hpp"
+#include <time.h>
 
 
 class Server
@@ -48,6 +49,8 @@ private:
 	std::map<int, User *>					_usersMap;
 	std::map<std::string, Channel *>		_channelMap;
 	t_client								_client;
+	time_t									_pingIntervalTimer;
+	unsigned int							_pingMSG;								
 
 	void 									_clientRegistration(User &user);
 	void									_runServer();
@@ -60,6 +63,7 @@ private:
 	User									*_getUserByFd(const int fd);
 	void									_broadcastServer(std::string const &msg);
 	void									_pingUsers();
+	void									_sendPingToUsers();
 };
 
 #endif

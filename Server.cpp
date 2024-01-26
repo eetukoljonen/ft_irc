@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/01/25 16:33:42 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/26 16:34:39 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,6 +151,10 @@ void Server::_runServer()
 		{
 			std::cout << "POLLERR STUFF" << std::endl;
 		}
+		// checking if ping interval timer has gone over 60 secs
+		time_t currentTime = time(0);
+		if (currentTime - _pingIntervalTimer >= 60)
+			_pingUsers();
 	}
 }
 
@@ -167,7 +171,7 @@ User* Server::_getUserByFd(const int fd)
 }
 
 Server::Server(int port, std::string pw, std::string name)
-:_name(name), _pw(pw), _port(port), _listeningSocket(0)
+:_name(name), _pw(pw), _port(port), _listeningSocket(0), _pingIntervalTimer(time(0)), _pingMSG(0)
 {
 	// std::string test1 = ":Nick!user@hostname PRIVMSG #example_channel :Hello, this is a regular message in a channel!\r\n";
 
@@ -317,7 +321,41 @@ void Server::_broadcastServer(std::string const &msg)
 	}
 }
 
+void Server::_sendPingToUsers()
+{
+	std::map<int, User *>::iterator it = _usersMap.begin();
+	std::map<int, User *>::iterator ite = _usersMap.end();
+	std::string ping_msg;
+	while (it != ite)
+	{
+		//creating unique ping msg to users
+		ping_msg = std::to_string(_pingMSG++);
+		// saving it to user class so when user responds we expect the message to match
+		it->second->setPongResponse(ping_msg);
+		it->second->resetPingResponseTimer();
+		it->second->addToSendBuffer(PING(_name, ping_msg));
+		it++;
+	}
+}
+
 void Server::_pingUsers()
 {
-	_broadcastServer()
+	// reseting the ping interval timer
+	_pingIntervalTimer = time(0);
+	if (_usersMap.empty())
+		return ;
+	// checking the ping response timers that they haven't
+	// gone over the 1 minute limit
+	time_t curTime = time(0);
+	std::map<int, User *>::iterator it = _usersMap.begin();
+	std::map<int, User *>::iterator ite = _usersMap.end();
+	while (it != ite)
+	{
+		time_t userTimer = it->second->getPingResponseTimer();
+		if (curTime - userTimer >= 60)
+			std::cout << it->second->getNick() << " timer has gone over 60 secs" << std::endl;
+		it++;
+	}
+	_sendPingToUsers();
+	
 }

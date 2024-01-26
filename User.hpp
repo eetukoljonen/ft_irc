@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 16:16:00 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/26 15:05:53 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,10 @@ public:
 	std::string const			&getUserMode() const;
 	std::string const			&getIP() const;
 	void						setIP(std::string const &ip);
+	void						resetPingResponseTimer();
+	time_t const				&getPingResponseTimer();
+	void						setPongResponse(std::string const &msg);
+	std::string const			&getPongResponse() const;
 private:
 	std::string					_nick;
 	std::string					_user;
@@ -73,7 +77,8 @@ private:
 	std::string					_userModes;
 	bool						_isRegistered;
 	bool						_passFlag;
-	time_t						_pingTimer;
+	time_t						_pingResponseTimer;
+	std::string					_pongRespone;
 };
 
 #endif

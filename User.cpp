@@ -1,6 +1,6 @@
 #include "User.hpp"
 
-User::User() : _isRegistered(false), _passFlag(false), _pingTimer(time(0)) {}
+User::User() : _isRegistered(false), _passFlag(false), _pingResponseTimer(time(0)) {}
 
 User::User(User const &cpy)
 {
@@ -12,7 +12,7 @@ User::User(User const &cpy)
 	_sendBuffer = cpy._sendBuffer;
 	_isRegistered = cpy._isRegistered;
 	_passFlag = cpy._passFlag;
-	_pingTimer = cpy._pingTimer;
+	_pingResponseTimer = cpy._pingResponseTimer;
 }
 
 User::~User(){}
@@ -29,7 +29,7 @@ User &User::operator=(User const &rhs)
 		_sendBuffer = rhs._sendBuffer;
 		_isRegistered = rhs._isRegistered;
 		_passFlag = rhs._passFlag;
-		_pingTimer = rhs._pingTimer;
+		_pingResponseTimer = rhs._pingResponseTimer;
     }
     return (*this);
 }
@@ -200,4 +200,24 @@ std::string const &User::getIP() const
 void User::setIP(std::string const &ip)
 {
 	_ipAddr = ip;
+}
+
+void User::resetPingResponseTimer()
+{
+	_pingResponseTimer = time(0);
+}
+
+time_t const &User::getPingResponseTimer()
+{
+	return (_pingResponseTimer);
+}
+
+void User::setPongResponse(std::string const &msg)
+{
+	_pongRespone = msg;
+}
+
+std::string const &User::getPongResponse() const
+{
+	return (_pongRespone);
 }

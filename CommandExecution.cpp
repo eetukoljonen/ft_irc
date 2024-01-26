@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 15:21:34 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/26 17:12:21 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 	_server = server;
 	_user = user;
 	_command = command;
-	std::string	Cmds[9] = 
+	std::string	Cmds[11] = 
 	{
 		"JOIN",
 		"NICK",
@@ -52,13 +52,15 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		"MOTD",
 		"KILL",
 		"MODE",
-		"KICK"
+		"KICK",
+		"PING",
+		"PONG"
     };
     
     int i = 0;
 	std::string _command = command.getCommand();
 	std::cout << "commnad = " << _command << std::endl;
-    while (i < 9)
+    while (i < 11)
     {
         if (!_command.compare(Cmds[i]))
             break;
@@ -76,6 +78,8 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 6: _kill(); break;
 		case 7: _mode(); break;
 		case 8: _kick(); break;
+		case 9: _ping(); break;
+		case 10: _pong(); break;
 		default: break;
 		// 	addToClientBuffer(this, client_fd, ERR_UNKNOWNCOMMAND(client->getNickname(), cmd_infos.name));
 	}
@@ -83,6 +87,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 
 void CommandExecution::_joinSucces(Channel *channel)
 {
+	channel->addToChannel(_user);
 	_user->addToSendBuffer(RPL_JOIN(user_id(_user->getNick(), _user->getUser(), _user->getIP()), "JOIN", channel->getChannelName()));
 	std::string const &topic = channel->getTopic();
 	if (topic.empty())
@@ -91,11 +96,12 @@ void CommandExecution::_joinSucces(Channel *channel)
 		_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), channel->getChannelName(), channel->getTopic()));
 	_user->addToSendBuffer(RPL_NAMES(_server->getName(), channel->getChannelName(), channel->getNickList(),  _user->getNick()));
 	_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), channel->getChannelName(), _user->getNick()));
-	channel->addToChannel(_user);
 }
 
 void CommandExecution::_joinExistingChannel(Channel *channel, std::string const &key)
 {
+	// todo inviteonly doesnt mean that there is a password so change that
+	// add a check if is invite only and the user is on the invite list
 	if (channel->isInviteOnly() && key.empty())
 		_user->addToSendBuffer(ERR_INVITEONLYCHAN(_server->getName(), _user->getNick(), channel->getChannelName()));
 	else if (channel->getUserCount() == channel->getUserLimit())
@@ -422,4 +428,34 @@ void	CommandExecution::_kick()
 	channel->removeFromChannel(targetUser);
 	//remove user from _users, _nickList,
 	//add to _kickedUsers
+}
+
+void CommandExecution::_pong()
+{
+	std::vector<std::string> const &parameters = _command.getParams();
+	if (parameters.empty() || parameters.size() > 1)
+		return ;
+	std::string response = parameters[0];
+	if (response[0] == ':')
+		response = response.substr(1);
+	if (response.compare(_user->getPongResponse()))
+		_user->resetPingResponseTimer();
+}
+
+void CommandExecution::_ping()
+{
+	if (_command.getParams().empty())
+	{
+		_user->addToSendBuffer(ERR_NOORIGIN(_server->getName()));
+		return ;
+	}
+	std::string msg = _command.getParams()[0];
+	if (msg[0] == ':')
+		msg = msg.substr(1);
+	if (msg.empty())
+	{
+		_user->addToSendBuffer(ERR_NOORIGIN(_server->getName()));
+		return ;
+	}
+	_user->addToSendBuffer(PONG(_server->getName(), msg));
 }
