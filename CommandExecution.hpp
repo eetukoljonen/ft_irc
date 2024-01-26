@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:01 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 12:18:06 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/26 12:58:43 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,10 @@ private:
 	static void		_mode();
 	static void		_userMode();
 	static void		_channelMode();
+
+	//invite
+	static void		_invite();
+	
 };
 
 
