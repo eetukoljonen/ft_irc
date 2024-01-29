@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:01 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/26 13:09:52 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/29 11:48:29 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,10 @@ private:
 	// ping pong
 	static void		_ping();
 	static void		_pong();
+
+	//invite
+	static void		_invite();
+	
 };
 
 

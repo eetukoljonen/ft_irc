@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/26 17:12:21 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/29 11:47:29 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 	_server = server;
 	_user = user;
 	_command = command;
-	std::string	Cmds[11] = 
+	std::string	Cmds[12] = 
 	{
 		"JOIN",
 		"NICK",
@@ -54,13 +54,14 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		"MODE",
 		"KICK",
 		"PING",
-		"PONG"
+		"PONG",
+		"INVITE"
     };
     
     int i = 0;
 	std::string _command = command.getCommand();
 	std::cout << "commnad = " << _command << std::endl;
-    while (i < 11)
+    while (i < 12)
     {
         if (!_command.compare(Cmds[i]))
             break;
@@ -80,6 +81,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 8: _kick(); break;
 		case 9: _ping(); break;
 		case 10: _pong(); break;
+		case 11: _invite(); break;
 		default: break;
 		// 	addToClientBuffer(this, client_fd, ERR_UNKNOWNCOMMAND(client->getNickname(), cmd_infos.name));
 	}
@@ -380,54 +382,121 @@ void    CommandExecution::_kill()
 
 void	CommandExecution::_kick()
 {
-	Channel *channel = _server->getChannelByName(_command.getParams()[1]);
 	std::string const &serverName = _server->getName();
-	std::string const &userName = _user->getNick();
-	std::string const &channelName = channel->getChannelName();
+	std::string const &userName = _user->getUser();
 	std::string const &command = _command.getCommand();
-	std::string const &kicker = _user->getNick();
-
-	//check channel
-	if (channel == nullptr)
-	{
-		_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, command));
-		return ;
-	}
-	
-	//check user that is the kicker
-	//existance on channel, (priviledge missing)
-	if (!channel->UserOnChannel(kicker))
-	{
-		_user->addToSendBuffer(ERR_NOTONCHANNEL(serverName, userName, channelName));
-		return ;
-	}
-	//check that the command has enough params
+	std::string const &kickerNick = _user->getNick();
+		
+	/* Check that the command has enough params */
 	if (_command.getParams().size() < 2)
 	{
-    	_user->addToSendBuffer(ERR_NEEDMOREPARAMS(serverName, kicker, command));
+    	_user->addToSendBuffer(ERR_NEEDMOREPARAMS(serverName, kickerNick, command));
     	return;
 	}
 	
-	std::string const targetUser = _command.getParams()[1];
+	std::string const &channelName = &_command.getParams()[0][1];
+	std::string const &targetUser = _command.getParams()[1];
+	Channel *channel = _server->getChannelByName(channelName);
 	User *target = channel->getUser(targetUser);
 	std::string reason;
-	
-	if (_command.getParams().size() > 2)
-		reason = _command.getParams()[2];
-	else
-		reason = "default";
-	if (!channel->UserOnChannel(targetUser))
+	/* Check channel exists */
+	if (channel == nullptr)
+	{
+		_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, channelName));
+		return ;
+	}
+	/* Check channel name */
+	if (!isValidChannelName(_command.getParams()[0]))
+	{
+		_user->addToSendBuffer(ERR_BADCHANMASK(serverName, userName, _command.getParams()[0]));
+		return ;
+	}
+	/* Check user privileges */
+	if (!channel->isOperator(kickerNick))
+	{
+		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(serverName, kickerNick, channelName));
+		return ;
+	}
+	/* Check that kicker is on channel */
+	if (!channel->UserOnChannel(kickerNick))
 	{
 		_user->addToSendBuffer(ERR_NOTONCHANNEL(serverName, userName, channelName));
 		return ;
 	}
-	// do the deed
-	target->addToSendBuffer(RPL_KICKEDFROMCHANNEL(serverName, channelName, userName, targetUser,  reason));
-	channel->broadcastToChannel(RPL_KICKBROADCAST(serverName, channelName, kicker, targetUser, reason));
-
+	/* Check that kicked is on channel */
+	if (!channel->UserOnChannel(targetUser))
+	{
+		_user->addToSendBuffer(ERR_USERNOTONCHANNEL(serverName, userName, kickerNick, channelName));
+		return ;
+	}
+	if (_command.getParams().size() > 2 && _command.getParams()[2].compare(":"))
+		reason = _command.getParams()[2];
+	else
+		reason = "default";
+	std::string const &msg = RPL_KICKEDCLIENT(serverName, kickerNick, \
+								channelName, target->getNick(), reason);
+	if (send(target->getUserInfo().fd, msg.c_str(), msg.size(), 0) < 0)
+   		std::cerr << "Error sending message: " << strerror(errno) << std::endl;
 	channel->removeFromChannel(targetUser);
-	//remove user from _users, _nickList,
-	//add to _kickedUsers
+	channel->broadcastToChannel(RPL_KICKBROADCAST(kickerNick, userName, serverName, \
+								channelName, targetUser, reason));
+}
+
+void	CommandExecution::_invite()
+{
+	std::string const &serverName = _server->getName();
+	std::string const &userName = _user->getUser();
+	std::string const &command = _command.getCommand();
+	std::string const &inviterNick = _user->getNick();
+	
+	if (_command.getParams().size() < 2) 
+	{
+        _user->addToSendBuffer(ERR_NEEDMOREPARAMS(serverName, inviterNick, command));
+        return;
+    }
+
+    std::string const &targetNick = _command.getParams()[0];
+    std::string const &channelName = &_command.getParams()[1][1];
+	Channel *channel = _server->getChannelByName(channelName);
+	/* Check channel name */
+	if (!isValidChannelName(_command.getParams()[1]))
+	{
+		_user->addToSendBuffer(ERR_BADCHANMASK(serverName, userName, channelName));
+		return ;
+	}
+	/* Check channel exists */
+	if (channel == nullptr)
+	{
+		_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, channelName));
+		return ;
+	}
+	/* Check user privileges */
+	if (!channel->isOperator(inviterNick))
+	{
+		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(serverName, inviterNick, channelName));
+		return ;
+	}
+	/* Check that inviter is on channel */
+	if (!channel->UserOnChannel(inviterNick))
+	{
+		_user->addToSendBuffer(ERR_NOTONCHANNEL(serverName, userName, channelName));
+		return ;
+	}
+	/* Check that invited is NOT on channel */
+	if (channel->UserOnChannel(targetNick))
+	{
+		_user->addToSendBuffer(ERR_USERONCHANNEL(serverName, inviterNick, targetNick, channelName));
+		return ;
+	}
+	User *target = _server->_findUserByNick(targetNick);
+	if (target == nullptr)
+	{
+		_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, targetNick));
+		return ;
+	}
+	std::string const &inviteMsg = RPL_INVITE(inviterNick, userName, serverName, targetNick, channelName);
+	target->addToSendBuffer(inviteMsg);
+	channel->addToInviteList(targetNick);
 }
 
 void CommandExecution::_pong()

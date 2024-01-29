@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 12:29:29 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/26 16:16:48 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ Channel::Channel() : _inviteOnly(false), _userLimit(100) {}
 Channel::Channel(Channel const &cpy)
 {
 	_users = cpy._users;
-	_bannedUsers = cpy._bannedUsers;
+	_invitedUsers = cpy._invitedUsers;
 	_kickedUsers = cpy._kickedUsers;
 	_operators = cpy._operators;
 	_inviteOnly = cpy._inviteOnly;
@@ -35,7 +35,7 @@ Channel &Channel::operator=(Channel const &rhs)
     if (this != &rhs)
     {
 		_users = rhs._users;
-		_bannedUsers = rhs._bannedUsers;
+		_invitedUsers = rhs._invitedUsers;
 		_kickedUsers = rhs._kickedUsers;
 		_operators = rhs._operators;
 		_inviteOnly = rhs._inviteOnly;
@@ -48,9 +48,9 @@ Channel &Channel::operator=(Channel const &rhs)
     return (*this);
 }
 
-bool Channel::isBanned(std::string const &nick)
+bool Channel::isInvited(std::string const &nick)
 {
-	if (std::find(_bannedUsers.begin(), _bannedUsers.end(), nick) != _bannedUsers.end())
+	if (std::find(_invitedUsers.begin(), _invitedUsers.end(), nick) != _invitedUsers.end())
 		return (true);
 	return (false);
 }
@@ -83,9 +83,9 @@ void Channel::addToOperators(std::string const &nick)
 	_operators.push_back(nick);
 }
 
-void Channel::addToBanList(std::string const &nick)
+void Channel::addToInviteList(std::string const &nick)
 {
-	_bannedUsers.push_back(nick);
+	_invitedUsers.push_back(nick);
 }
 
 void Channel::addToKickList(std::string const &nick)
@@ -95,7 +95,7 @@ void Channel::addToKickList(std::string const &nick)
 
 bool Channel::isInviteOnly()
 {
-	return (_inviteOnly);
+	return _inviteOnly;
 }
 
 void Channel::setChannelName(std::string const &name)
@@ -105,7 +105,7 @@ void Channel::setChannelName(std::string const &name)
 
 std::string const &Channel::getChannelName() const
 {
-	return (_channelName);
+	return _channelName;
 }
 
 void Channel::setChannelKey(std::string const &key)
@@ -180,4 +180,10 @@ void	Channel::removeFromChannel(std::string const &nick)
 	std::map<std::string, User *>::iterator it = _users.find(nick);
 	if (it != _users.end())
 		_users.erase(it);
+	_kickedUsers.push_back(nick);
+	size_t i = _nickList.find(nick);
+	// std::cout << "nicklist bfore = " << _nickList << std::endl;
+	if (i != std::string::npos)
+		_nickList.erase(i, nick.size() + 1);
+	// std::cout << "nicklist after = " << _nickList << std::endl;
 }

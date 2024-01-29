@@ -73,24 +73,40 @@
 
 #define RPL_KILL(server, killed, comment) (server + " KILL " + killed + " Kill" + comment + "\r\n")
 #define ERR_NOSUCHNICK(servername, client, nickname) (":" + servername + " 401 " + client + " " + nickname + " :No such nick/channel.\r\n")
-//channel
 
-# define ERR_USERNOTINCHANNEL(server, client, nick, channel) \
+//kick
+# define ERR_USERNOTONCHANNEL(server, client, nick, channel) \
     (":" + server + " 441 " + client + " " + nick + " " + channel + " :They aren't on that channel\r\n")
 # define ERR_NOTONCHANNEL(server, client, channel) \
     (":" + server + " 442 " + client + " " + channel + " :You're not on that channel\r\n")
-# define RPL_KICK(server, channel, kicked, reason) \
-    (":" + server + " KICK " + channel + " " + kicked + " :" + reason + "\r\n")
+# define RPL_KICKEDCLIENT(server, kickerNick, channel, kickedUser, reason) \
+    (":" + kickerNick + "!" + server + " KICK " + "#" + channel + " " + kickedUser + " " + reason + "\r\n")
+# define RPL_KICKBROADCAST(kickerNick, kickerUsername, serverName, channel, kicked, reason) \
+    (user_id(kickerNick, kickerUsername, serverName) + " KICK #" + channel + " " + kicked + " :" + reason + "\r\n")
+# define ERR_CHANOPRIVSNEEDED(server, userNick, channel) \
+    (":" + server + " 482 " + userNick + " " + channel + " :You're not channel operator\r\n")
+
+/* INVITE */
+
+// Reply when the invitation is successful
+# define RPL_INVITING(server, inviterNick, invitedNick, channel) \
+    (":" + server + " 341 " + inviterNick + " " + invitedNick + " " + channel + "\r\n")
+
+# define RPL_INVITE(inviterNick, inviterUser, inviterHost, targetNick, channel) \
+    (":" + inviterNick + "!" + inviterUser + "@" + inviterHost + " INVITE " + targetNick + " :" + channel + "\r\n")
+
+// Error when the invited user is already on the channel
+# define ERR_USERONCHANNEL(server, inviterNick, invitedNick, channel) \
+    (":" + server + " 443 " + inviterNick + " " + invitedNick + " " + channel + " :is already on channel\r\n")
+
+// Reply when the invited user is away
+# define RPL_AWAY(server, inviterNick, invitedNick, awayMessage) \
+    (":" + server + " 301 " + inviterNick + " " + invitedNick + " :" + awayMessage + "\r\n")
+
+
 
 # define RPL_UMODEIS(servername, client, user_modes) (":" + servername + " 221 " + client + " :" + user_modes + "\r\n")
 # define ERR_UMODEUNKNOWNFLAG(servername, client, unknown_mode) (":" + servername + " * 501 " + client + " :Unknown mode flag '" + unknown_mode + "'\r\n")
-# define RPL_KICKBROADCAST(server, channel, kicker, kicked, reason) \
-    (":" + kicker + "!" + server + " KICK " + channel + " " + kicked + " :" + reason + "\r\n")
-# define RPL_KICKEDFROMCHANNEL(server, kickerNick, channel, kickedUser, reason) \
-    (":" + server + " KICK " + channel + " " + kickedUser + " :" + kickerNick + " " + reason + "\r\n")
-
-
-
 
 //join
 # define ERR_INVITEONLYCHAN(servername, client, channel) (":" + servername + " 473 " + client + " " + channel + " :Cannot join channel (+i)\r\n")
