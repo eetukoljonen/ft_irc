@@ -37,7 +37,7 @@ public:
 	std::vector<struct pollfd>::iterator	findPollStructByFd(int fd);
 	void 									deleteUser(int fd);
 	Channel									*createChannel(std::string const &name);
-	// Channel									*createChannel(std::string const &name, std::string const &key);
+	// Channel								*createChannel(std::string const &name, std::string const &key);
 private:
 	std::string 							_name;
 	std::string								_host;
@@ -52,7 +52,6 @@ private:
 	time_t									_pingIntervalTimer;
 	unsigned int							_pingMSG;								
 
-	void 									_clientRegistration(User &user);
 	void									_runServer();
 	void									_executeCommands(User *user);
 	void									_bindSocket();

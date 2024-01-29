@@ -103,6 +103,11 @@
 # define RPL_AWAY(server, inviterNick, invitedNick, awayMessage) \
     (":" + server + " 301 " + inviterNick + " " + invitedNick + " :" + awayMessage + "\r\n")
 
+//PRIVMSG
+# define ERR_NORECIPIENT(client) ("411 " + client + " :No recipient given PRIVMSG\r\n")
+# define ERR_NOTEXTTOSEND(client) ("412 " + client + " :No text to send\r\n")
+# define RPL_PRIVMSG(nick, username, target, message) \
+				(":" + nick + "!" + username + "@localhost PRIVMSG " + target + " " + message + "\r\n")
 
 
 # define RPL_UMODEIS(servername, client, user_modes) (":" + servername + " 221 " + client + " :" + user_modes + "\r\n")

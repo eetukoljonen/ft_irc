@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/29 11:47:29 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/29 17:18:15 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 	_server = server;
 	_user = user;
 	_command = command;
-	std::string	Cmds[12] = 
+	std::string	Cmds[13] = 
 	{
 		"JOIN",
 		"NICK",
@@ -55,13 +55,14 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		"KICK",
 		"PING",
 		"PONG",
-		"INVITE"
+		"INVITE",
+		"PRIVMSG"
     };
     
     int i = 0;
 	std::string _command = command.getCommand();
 	std::cout << "commnad = " << _command << std::endl;
-    while (i < 12)
+    while (i < 13)
     {
         if (!_command.compare(Cmds[i]))
             break;
@@ -82,6 +83,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 9: _ping(); break;
 		case 10: _pong(); break;
 		case 11: _invite(); break;
+		case 12: _privmsg(); break;
 		default: break;
 		// 	addToClientBuffer(this, client_fd, ERR_UNKNOWNCOMMAND(client->getNickname(), cmd_infos.name));
 	}
@@ -528,3 +530,64 @@ void CommandExecution::_ping()
 	}
 	_user->addToSendBuffer(PONG(_server->getName(), msg));
 }
+
+// PRIVMSG <receiver> :<message>
+
+void CommandExecution::_privmsg()
+{
+	std::string const &serverName = _server->getName();
+	std::string const &userName = _user->getUser();
+	std::string const &command = _command.getCommand();
+	std::string const &userNick = _user->getNick();
+	
+	if (_command.getParams().size() < 2) 
+	{
+        _user->addToSendBuffer(ERR_NEEDMOREPARAMS(serverName, userNick, command));
+        return;
+    }
+
+	std::string const &receiver = _command.getParams()[0];
+	std::string const &msg = _command.getParams()[1];
+	
+	std::cout << "receiver is :" << receiver << std::endl;
+	std::cout << "privmsg is :" << msg << std::endl;
+
+	Channel* channel = _server->getChannelByName(receiver); // Maybe change this function to include the #
+	
+	if (!receiver.empty() && receiver[0] == '#')
+	{
+		// The receiver is a channel
+		if (channel) 
+		{
+			if (channel->UserOnChannel(userNick))
+				channel->broadcastToChannel(msg);
+			else 
+				_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
+		} 
+		else
+			_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, receiver));
+	} 
+	else 
+	{
+		// The receiver is a user
+		User* recipient = _server->_findUserByNick(receiver);
+		std::cout << "user is :" << recipient->getNick() << std::endl;
+
+		if (recipient)
+			recipient->addToSendBuffer(RPL_PRIVMSG(userNick, userName, receiver, msg));
+		else
+			_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
+	}	
+}
+// 	size_t      delimiter = cmd_infos.message.rfind(":");
+//    if (delimiter == std::string::npos) // pas de : -> donc pas de message
+//    {
+//       addToClientBuffer(server, client_fd, ERR_NOTEXTTOSEND(it_client->second.getNickname()));
+//       return ;
+//    }
+//    target = cmd_infos.message.substr(1, delimiter - 1); // s'arrete avant le delimiter
+//    if (target.empty())
+//    {
+//       addToClientBuffer(server, client_fd, ERR_NORECIPIENT(it_client->second.getNickname()));
+//       return ;
+//    }
