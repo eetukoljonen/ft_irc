@@ -55,7 +55,7 @@
 //user
 
 # define RPL_UMODEIS(servername, client, user_modes) (":" + servername + " 221 " + client + " :" + user_modes + "\r\n")
-# define ERR_UMODEUNKNOWNFLAG(servername, client, unknown_mode) (":" + servername + " * 501 " + client + " :Unknown mode flag '" + unknown_mode + "'\r\n")
+// # define ERR_UMODEUNKNOWNFLAG(servername, client, unknown_mode) (":" + servername + " * 501 " + client + " :Unknown mode flag '" + unknown_mode + "'\r\n")
 
 //join
 # define ERR_INVITEONLYCHAN(servername, client, channel) (":" + servername + " 473 " + client + " " + channel + " :Cannot join channel (+i)\r\n")
@@ -106,7 +106,7 @@
 
 
 # define RPL_UMODEIS(servername, client, user_modes) (":" + servername + " 221 " + client + " :" + user_modes + "\r\n")
-# define ERR_UMODEUNKNOWNFLAG(servername, client, unknown_mode) (":" + servername + " * 501 " + client + " :Unknown mode flag '" + unknown_mode + "'\r\n")
+// # define ERR_UMODEUNKNOWNFLAG(servername, client, unknown_mode) (":" + servername + " * 501 " + client + " :Unknown mode flag '" + unknown_mode + "'\r\n")
 
 //join
 # define ERR_INVITEONLYCHAN(servername, client, channel) (":" + servername + " 473 " + client + " " + channel + " :Cannot join channel (+i)\r\n")
@@ -127,3 +127,11 @@
 # define PONG(servername, msg) (":" + servername + " PONG " + servername + " :" + msg + "\r\n")
 # define ERR_NOORIGIN(servername) (":" + servername + " 409 :No origin specified\r\n")
 # define ERR_NOSUCHSERVER(servername, parameter) (":" + servername + " 402 " + parameter + " :No such server\r\n")
+
+//mode
+
+# define ERR_USERSDONTMATCH(servername) (":" + servername + " 502 :Cannot change mode for other users\r\n")
+# define ERR_UMODEUNKNOWNFLAG(servername) (":" + servername + " 501 :Unknown MODE flag\r\n")
+# define ERR_UNKNOWNMODE(servername, mode, channel) (":" + servername + " 472 " + mode + " :is unknown mode char to me for " + channel + "\r\n")
+# define USERMODE(user_id, client, mode) (user_id + " MODE " + client + " :" + mode + "\r\n")
+# define CHANNELMODE(user_id, channel, mode) (user_id + " MODE #" + channel + " " + mode + "\r\n")

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/26 16:16:48 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/29 18:42:39 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,10 +166,9 @@ std::map<std::string, User *>	&Channel::getUsersMap()
 
 void Channel::broadcastToChannel(std::string const & msg) 
 {
-	std::map<std::string, User *> usersMap = getUsersMap();
 	std::map<std::string, User *>::iterator it;
 	
-    for(it = usersMap.begin(); it != usersMap.end(); ++it)
+    for(it = _users.begin(); it != _users.end(); ++it)
 	{
         it->second->addToSendBuffer(msg);
 	}
@@ -186,4 +185,24 @@ void	Channel::removeFromChannel(std::string const &nick)
 	if (i != std::string::npos)
 		_nickList.erase(i, nick.size() + 1);
 	// std::cout << "nicklist after = " << _nickList << std::endl;
+}
+
+void Channel::removeOperatorPrivilages(std::string const &nick)
+{
+	if (isOperator(nick))
+		_operators.erase(std::find(_operators.begin(), _operators.end(), nick));
+}
+
+void Channel::addChannelMode(u_int8_t const &mode)
+{
+	_modes |= mode;
+}
+
+void Channel::removeChannelMode(u_int8_t const &mode)
+{
+	_modes ^= mode;
+}
+u_int8_t const &Channel::getChannelMode() const
+{
+	return (_modes);
 }

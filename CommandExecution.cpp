@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/29 11:47:29 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/29 19:23:09 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,15 +102,13 @@ void CommandExecution::_joinSucces(Channel *channel)
 
 void CommandExecution::_joinExistingChannel(Channel *channel, std::string const &key)
 {
-	// todo inviteonly doesnt mean that there is a password so change that
-	// add a check if is invite only and the user is on the invite list
-	if (channel->isInviteOnly() && key.empty())
+	if (channel->isInviteOnly() && !channel->isInvited(_user->getNick()))
 		_user->addToSendBuffer(ERR_INVITEONLYCHAN(_server->getName(), _user->getNick(), channel->getChannelName()));
 	else if (channel->getUserCount() == channel->getUserLimit())
 		_user->addToSendBuffer(ERR_CHANNELISFULL(_server->getName(), _user->getNick(), channel->getChannelName()));
 	else
 	{
-		if (channel->isInviteOnly() && channel->getChannelkey().compare(key))
+		if (!channel->getChannelkey().empty() && channel->getChannelkey().compare(key))
 			_user->addToSendBuffer(ERR_BADCHANNELKEY(_server->getName(), _user->getNick(), channel->getChannelName()));
 		else
 			_joinSucces(channel);
@@ -265,54 +263,178 @@ void CommandExecution::_userF()
 	}
 }
 
-void CommandExecution::_channelMode()
-{
-	
-}
-
 void CommandExecution::_userMode()
 {
 	std::vector<std::string> const &cmdParams = _command.getParams();
 	size_t parameters = cmdParams.size();
+	std::string const &nick = cmdParams[0];
+	if (nick.compare(_user->getNick()))
+	{
+		_user->addToSendBuffer(ERR_USERSDONTMATCH(_server->getName()));
+		return ;
+	}
 	if (parameters == 1)
 	{
 		_user->addToSendBuffer(RPL_UMODEIS(_server->getName(), _user->getNick(), _user->getUserMode()));
 		return ;
 	}
-	if (parameters > 2)
-	{
-		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE"));
-		return ;
-	}
 	std::string mode = cmdParams.at(1);
-	if (mode.size() != 2)
+	if (!mode.compare("+i") && _user->getUserMode().empty())
 	{
-		_user->addToSendBuffer(ERR_UMODEUNKNOWNFLAG(_server->getName(), _user->getNick(), mode));
+		_user->addToSendBuffer(USERMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick(), mode));
+		_user->addUserMode("i");
+	}
+}
+
+void CommandExecution::_removeChannelModes(Channel *channel, std::string const &mode, std::string const &channelName, std::vector<std::string> const &modeParams)
+{
+	for (size_t i = 0; i < mode.size(); i++)
+	{
+		switch (mode[i])
+		{
+		case 'i':
+			channel->setInviteOnly(false);
+			channel->removeChannelMode(MODE_i);
+			channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-i"));
+			break ;
+		case 'l':
+			channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-l"));
+			channel->removeChannelMode(MODE_l);
+			break ;
+		case 't':
+			channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-t"));
+			channel->removeChannelMode(MODE_t);
+			break;
+		case 'k':
+			channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-k"));
+			channel->removeChannelMode(MODE_k);
+			break;
+		case 'o':
+			if (modeParams.size() <= i)
+				_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE"));
+			else
+			{
+				// checking that user exist with this nickname on the whole server
+				if (_server->_findUserByNick(modeParams[i]) == nullptr)
+					_user->addToSendBuffer(ERR_NOSUCHNICK(_server->getName(), _user->getNick(), modeParams[i]));
+				else if (!channel->UserOnChannel(modeParams[i])) // checking if on channel
+					_user->addToSendBuffer(ERR_USERNOTONCHANNEL(_server->getName(), _user->getNick(), modeParams[i], channelName));
+				else
+				{
+					// removing the op privilages
+					channel->removeOperatorPrivilages(modeParams[i]);
+					channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-o " + modeParams[i]));
+					// _user->addToSendBuffer(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, mode[i]));
+				}
+			}
+			break ;
+		default :
+			_user->addToSendBuffer(ERR_UNKNOWNMODE(_server->getName(), mode[i], channelName));
+			break ;
+		}
+	}
+}
+
+void CommandExecution::_addChannelModes(Channel *channel, std::string const &mode, std::string const &channelName, std::vector<std::string> const &modeParams)
+{
+	for (size_t i = 0; i < mode.size(); i++)
+	{
+		switch (mode[i])
+		{
+		case 'i':
+			channel->setInviteOnly(true);
+			channel->addChannelMode(MODE_i);
+			channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+i"));
+			break ;
+		case 'l':
+			if (modeParams.size() <= i)
+				_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE +l"));
+			else
+			{
+				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+l " + modeParams[i]));
+				channel->addChannelMode(MODE_l);
+				// todo set the limit on the channel
+			}
+			break ;
+		case 't':
+			channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+t"));
+			channel->addChannelMode(MODE_t);
+			break;
+		case 'k':
+			if (modeParams.size() <= i)
+				_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE +k"));
+			else
+			{
+				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+k " + modeParams[i]));
+				channel->addChannelMode(MODE_k);
+			}
+			break;
+		case 'o':
+			if (modeParams.size() <= i)
+				_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE +o"));
+			else
+			{
+				// checking that user exist with this nickname on the whole server
+				if (_server->_findUserByNick(modeParams[i]) == nullptr)
+					_user->addToSendBuffer(ERR_NOSUCHNICK(_server->getName(), _user->getNick(), modeParams[i]));
+				else if (!channel->UserOnChannel(modeParams[i])) // checking if on channel
+					_user->addToSendBuffer(ERR_USERNOTONCHANNEL(_server->getName(), _user->getNick(), modeParams[i], channelName));
+				else
+				{
+					// removing the op privilages
+					channel->addToOperators(modeParams[i]);
+					channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+o " + modeParams[i]));
+					// _user->addToSendBuffer(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, mode[i]));
+				}
+			}
+			break ;
+		default :
+			_user->addToSendBuffer(ERR_UNKNOWNMODE(_server->getName(), mode[i], channelName));
+			break ;
+		}
+	}
+}
+
+void CommandExecution::_channelMode()
+{
+	std::vector<std::string> const &cmdParams = _command.getParams();
+	size_t const &paramSize = cmdParams.size();
+	std::string const channelName = &cmdParams[0][1];
+	Channel *channel = _server->getChannelByName(channelName);
+	if (channel == nullptr)
+	{
+		_user->addToSendBuffer(ERR_NOSUCHCHANNEL(_server->getName(), _user->getNick(), channelName));
 		return ;
 	}
-	if (mode[0] == '-')
-		_user->removeUserMode(&mode[1]);
-	else if (mode[0] == '+')
-		_user->addUserMode(&mode[1]);
-	else
+	if (paramSize == 1)
 	{
-		_user->addToSendBuffer(ERR_UMODEUNKNOWNFLAG(_server->getName(), _user->getNick(), mode));
+		//todo if channel name is the only parameter send the correct reply
 		return ;
 	}
-	_user->addToSendBuffer(RPL_UMODEIS(_server->getName(), _user->getNick(), _user->getUserMode()));
+	std::string const &mode = cmdParams[1];
+	// making a new vector for the mode parameters
+	std::vector<std::string> modeParams(cmdParams.begin() + 2, cmdParams.end());
+	char prefix = mode[0];
+	if (prefix == '-')
+		_removeChannelModes(channel, &mode[1], channelName, modeParams);
+	else if (prefix == '+')
+		_addChannelModes(channel, &mode[1], channelName, modeParams);
 }
 
 void CommandExecution::_mode()
 {
-	std::vector<std::string> cmdParams = _command.getParams();
+	std::vector<std::string> const &cmdParams = _command.getParams();
 	if (cmdParams.empty())
 	{
-		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "PASS"));
+		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE"));
 		return ;
 	}
-	if (!cmdParams.at(0).compare(_user->getNick()))
+	if (cmdParams.at(0)[0] != '#' && cmdParams.at(0)[0] != '&' && cmdParams.at(0)[0] != '!' && cmdParams.at(0)[0] != '+')
 		_userMode();
-	
+	else if (!checkIrcPattern(&cmdParams[0][1]))
+		_user->addToSendBuffer(ERR_BADCHANMASK(_server->getName(), _user->getNick(), cmdParams[0]));
+	else
+		_channelMode();
 }
 
 void CommandExecution::_pass()

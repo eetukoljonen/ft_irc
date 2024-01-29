@@ -6,12 +6,17 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/29 11:47:50 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/29 17:57:38 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef __CHANNEL_HPP__
 #define __CHANNEL_HPP__
+
+# define MODE_i 1
+# define MODE_t 2
+# define MODE_k 4
+# define MODE_l 8
 
 #include <map>
 #include <vector>
@@ -47,7 +52,10 @@ public:
 	void							broadcastToChannel(const std::string& msg);
 	std::map<std::string, User *>	&getUsersMap();
 	void							removeFromChannel(std::string const &nick);
-	
+	void							removeOperatorPrivilages(std::string const &nick);
+	void							addChannelMode(u_int8_t const &mode);
+	void							removeChannelMode(u_int8_t const &mode);
+	u_int8_t const					&getChannelMode() const;
 private:
 	std::map<std::string, User *>	_users;
 	std::vector<std::string>		_invitedUsers;
@@ -59,7 +67,8 @@ private:
 	std::string						_nickList;
 	bool							_inviteOnly;
 	int								_userLimit;
-	
+	// bit set for channel modes
+	u_int8_t						_modes;
 };
 
 #endif

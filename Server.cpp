@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/01/26 16:34:39 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/29 15:41:20 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -256,10 +256,18 @@ void Server::addNewChannel(Channel *channel)
 
 Channel *Server::getChannelByName(std::string const &name) const
 {
-	std::map<std::string, Channel *>::const_iterator it = _channelMap.find(name);
-	if (it == _channelMap.end())
-		return (nullptr);
-	return (it->second);
+	std::map<std::string, Channel *>::const_iterator it = _channelMap.cbegin();
+	std::map<std::string, Channel *>::const_iterator ite = _channelMap.cend();
+	while (it != ite)
+	{
+		// putting the channelname to upper because channel names are case insensitive
+		std::string const &channelName = str_toupper(it->second->getChannelName());
+		std::string const &parameter = str_toupper(name);
+		if (!channelName.compare(parameter))
+			return (it->second);
+		it++;
+	}
+	return (nullptr);
 }
 
 std::vector<struct pollfd>::iterator Server::findPollStructByFd(int fd)

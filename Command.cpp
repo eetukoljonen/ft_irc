@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 16:38:54 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/25 15:20:38 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/29 15:34:42 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,8 +83,7 @@ void Command::_parseInput(std::string const &input)
 
 	}
 	//making the command uppercase because commands are case insensitive
-	for (size_t i = 0; i < _command.size(); i++)
-		_command[i] = std::toupper(_command[i]);
+	_command = str_toupper(_command);
 }
 
 std::string const &Command::getPrefix()
