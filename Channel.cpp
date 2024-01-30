@@ -6,13 +6,13 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/29 18:42:39 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/30 15:33:04 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 
-Channel::Channel() : _inviteOnly(false), _userLimit(100) {}
+Channel::Channel() : _inviteOnly(false), _userLimit(100), _modes(0) {}
 
 Channel::Channel(Channel const &cpy)
 {
@@ -26,6 +26,7 @@ Channel::Channel(Channel const &cpy)
 	_inviteOnly = cpy._inviteOnly;
 	_userLimit = cpy._userLimit;
 	_topic = cpy._topic;
+	_modes = cpy._modes;
 }
 
 Channel::~Channel(){}
@@ -44,6 +45,7 @@ Channel &Channel::operator=(Channel const &rhs)
 		_inviteOnly = rhs._inviteOnly;
 		_userLimit = rhs._userLimit;
 		_topic = rhs._topic;
+		_modes = rhs._modes;
     }
     return (*this);
 }
@@ -205,4 +207,24 @@ void Channel::removeChannelMode(u_int8_t const &mode)
 u_int8_t const &Channel::getChannelMode() const
 {
 	return (_modes);
+}
+
+void Channel::setUserLimit(int const &limit)
+{
+	_userLimit = limit;
+}
+
+std::string Channel::getChannelModeString()
+{
+	std::string mode;
+	if (_modes & MODE_i)
+		mode += 'i';
+	if (_modes & MODE_t)
+		mode += 't';
+	if (_modes & MODE_k)
+		mode += 'k';
+	if (_modes & MODE_l)
+		mode += 'l';
+	//returning a string with a + in front of it if its not empty
+	return (mode.empty() ? mode : "+" + mode);
 }

@@ -6,17 +6,17 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/29 17:57:38 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/30 16:17:24 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef __CHANNEL_HPP__
 #define __CHANNEL_HPP__
 
-# define MODE_i 1
+# define MODE_l 1
 # define MODE_t 2
 # define MODE_k 4
-# define MODE_l 8
+# define MODE_i 8
 
 #include <map>
 #include <vector>
@@ -56,6 +56,8 @@ public:
 	void							addChannelMode(u_int8_t const &mode);
 	void							removeChannelMode(u_int8_t const &mode);
 	u_int8_t const					&getChannelMode() const;
+	void							setUserLimit(int const &limit);
+	std::string						getChannelModeString();
 private:
 	std::map<std::string, User *>	_users;
 	std::vector<std::string>		_invitedUsers;

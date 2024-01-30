@@ -135,3 +135,4 @@
 # define ERR_UNKNOWNMODE(servername, mode, channel) (":" + servername + " 472 " + mode + " :is unknown mode char to me for " + channel + "\r\n")
 # define USERMODE(user_id, client, mode) (user_id + " MODE " + client + " :" + mode + "\r\n")
 # define CHANNELMODE(user_id, channel, mode) (user_id + " MODE #" + channel + " " + mode + "\r\n")
+# define RPL_CHANNELMODIS(servername, client, channel, channelmodes) (":" + servername + " 324 " + client + " #" + channel + " " + channelmodes + "\r\n")
