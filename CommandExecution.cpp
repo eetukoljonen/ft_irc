@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/31 12:03:46 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/31 15:58:08 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,11 +197,6 @@ bool CommandExecution::_isValidNick()
 		_user->addToSendBuffer(ERR_NONICKNAMEGIVEN(_server->getName()));
 		return (false);
 	}
-	if (_command.getParams().size() > 1)
-	{
-		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "NICK"));
-		return (false);
-	}
 	std::string const &nick = _command.getParams().at(0);
 	size_t nickSize = nick.size();
 	if (nickSize == 0)
@@ -227,18 +222,22 @@ bool CommandExecution::_isValidNick()
 	return (true);
 }
 
+//>> :tngnet.nl.quakenet.org 433 * atuliara :Nickname is already in use.
 void CommandExecution::_nick()
 {
 	if (!_isValidNick())
 		return ;
 	if (!_user->isRegistered() && !_user->getUser().empty() && _user->isPassCorrect())
 	{
+		_user->setNick(_command.getParams().at(0));
 		_user->setRegistrationFlag(true);
 		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
 	}
 	else if (_user->isRegistered())
+	{
 		_user->addToSendBuffer(NICK(user_id(_user->getNick(), _user->getUser(), _user->getIP()), _command.getParams().at(0)));
-	_user->setNick(_command.getParams().at(0));
+		_user->setNick(_command.getParams().at(0));
+	}
 }
 
 void CommandExecution::_motd()
@@ -732,15 +731,16 @@ void CommandExecution::_privmsg()
 	std::cout << "receiver is " << receiver << std::endl;
 	std::cout << "privmsg is " << msg << std::endl;
 
-	Channel* channel = _server->getChannelByName(receiver); // Maybe change this function to include the #
+	Channel* channel = _server->getChannelByName(&receiver[1]); // Maybe change this function to include the #
 	
 	if (!receiver.empty() && receiver[0] == '#')
 	{
 		// The receiver is a channel
 		if (channel) 
 		{
+			// std::cout << "hello there\n";
 			if (channel->UserOnChannel(userNick))
-				channel->broadcastToChannel(msg);
+				channel->broadcastToChannel(RPL_PRIVMSG(userNick, userName, receiver, msg), _user);
 			else 
 				_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
 		} 
@@ -751,7 +751,7 @@ void CommandExecution::_privmsg()
 	{
 		// The receiver is a user
 		User* recipient = _server->_findUserByNick(receiver);
-		std::cout << "user is :" << recipient->getNick() << std::endl;
+		// std::cout << "user is " << recipient->getNick() << std::endl;
 
 		if (recipient)
 			recipient->addToSendBuffer(RPL_PRIVMSG(userNick, userName, receiver, msg));

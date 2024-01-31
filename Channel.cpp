@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/31 10:43:59 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/31 13:03:24 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,6 +146,17 @@ User	*Channel::getUser(std::string const &nick) const
 std::map<std::string, User *>	&Channel::getUsersMap()
 {
 	return _users;
+}
+
+void Channel::broadcastToChannel(std::string const & msg, User *ignoredUser) 
+{
+	std::map<std::string, User *>::iterator it;
+	
+    for(it = _users.begin(); it != _users.end(); ++it)
+	{
+		if (it->second != ignoredUser)
+        	it->second->addToSendBuffer(msg);
+	}
 }
 
 void Channel::broadcastToChannel(std::string const & msg) 

@@ -19,9 +19,6 @@
 
 //nick
 
-#define ERR_NONICKNAMEGIVEN(server) (":" + server + " 431 :No nickname given\r\n")
-#define ERR_ERRONEUSNICKNAME(server, nick) (":" + server + " 432 " + nick + " :Erroneous nickname\r\n")
-#define ERR_NICKNAMEINUSE(server, nick) (":" + server + " 433 " + nick + " :Nickname is already in use\r\n")
 #define ERR_NICKCOLLISION(server, nick) (":" + server + " 436 " + nick + " :Nickname collision\r\n")
 #define ERR_RESTRICTED(server, nick) (":" + server + " 484 " + nick + " :Your connection is restricted and cannot use this nickname\r\n")
 # define ERR_NOTREGISTERED(servername)(":" + servername + " 451 :Register first.\r\n")
@@ -46,7 +43,7 @@
 
 #define ERR_NONICKNAMEGIVEN(server) (":" + server + " 431 :No nickname given\r\n")
 #define ERR_ERRONEUSNICKNAME(server, nick) (":" + server + " 432 " + nick + " :Erroneous nickname\r\n")
-#define ERR_NICKNAMEINUSE(server, nick) (":" + server + " 433 " + nick + " :Nickname is already in use\r\n")
+#define ERR_NICKNAMEINUSE(server, nick) (":" + server + " 433 * " + nick + " :Nickname is already in use.\r\n")
 #define ERR_NICKCOLLISION(server, nick) (":" + server + " 436 " + nick + " :Nickname collision\r\n")
 #define ERR_RESTRICTED(server, nick) (":" + server + " 484 " + nick + " :Your connection is restricted and cannot use this nickname\r\n")
 
@@ -110,7 +107,8 @@
 # define ERR_NORECIPIENT(client) ("411 " + client + " :No recipient given PRIVMSG\r\n")
 # define ERR_NOTEXTTOSEND(client) ("412 " + client + " :No text to send\r\n")
 # define RPL_PRIVMSG(nick, username, target, message) \
-				(":" + nick + "!" + username + "@localhost PRIVMSG " + target + " " + message + "\r\n")
+				(":" + nick + "!" + username + "@127.0.0.1 PRIVMSG " + target + " " + message + "\r\n")
+
 
 
 # define RPL_UMODEIS(servername, client, user_modes) (":" + servername + " 221 " + client + " :" + user_modes + "\r\n")
