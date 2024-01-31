@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/31 15:58:08 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/31 16:08:12 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,16 +227,16 @@ void CommandExecution::_nick()
 {
 	if (!_isValidNick())
 		return ;
+	std::string const &oldNick = _user->getNick();
+	_user->setNick(_command.getParams().at(0));
 	if (!_user->isRegistered() && !_user->getUser().empty() && _user->isPassCorrect())
 	{
-		_user->setNick(_command.getParams().at(0));
 		_user->setRegistrationFlag(true);
 		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
 	}
 	else if (_user->isRegistered())
 	{
-		_user->addToSendBuffer(NICK(user_id(_user->getNick(), _user->getUser(), _user->getIP()), _command.getParams().at(0)));
-		_user->setNick(_command.getParams().at(0));
+		_user->addToSendBuffer(NICK(user_id(oldNick, _user->getUser(), _user->getIP()), _command.getParams().at(0)));
 	}
 }
 
