@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/01/31 10:27:09 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/31 12:05:18 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -378,5 +378,4 @@ void Server::_pingUsers()
 		it++;
 	}
 	_sendPingToUsers();
-	
 }

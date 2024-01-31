@@ -30,6 +30,7 @@
 # define RPL_CREATED(server, client, datetime) (":" + server + " 003 " + client + " :This server was created " + datetime + "\r\n")
 # define RPL_MYINFO(server, client, version, user_modes, chan_modes, chan_param_modes) (":" + server + " 004 " + client + " " + server + " " + version + " " + user_modes + " " + chan_modes + " " + chan_param_modes + "\r\n")
 # define RPL_ISUPPORT(server, client, tokens) (":" + server " 005 " + client + " " + tokens + " :are supported by this server\r\n")
+# define NICK(user_id, new_nick) (user_id + " NICK " + ":" + new_nick + "\r\n")
 
 # define ERR_NOMOTD(server, client) (":" + server + " 422 " + client + " :MOTD File is missing\r\n")
 
@@ -105,6 +106,11 @@
 # define RPL_AWAY(server, inviterNick, invitedNick, awayMessage) \
     (":" + server + " 301 " + inviterNick + " " + invitedNick + " :" + awayMessage + "\r\n")
 
+//PRIVMSG
+# define ERR_NORECIPIENT(client) ("411 " + client + " :No recipient given PRIVMSG\r\n")
+# define ERR_NOTEXTTOSEND(client) ("412 " + client + " :No text to send\r\n")
+# define RPL_PRIVMSG(nick, username, target, message) \
+				(":" + nick + "!" + username + "@localhost PRIVMSG " + target + " " + message + "\r\n")
 
 
 # define RPL_UMODEIS(servername, client, user_modes) (":" + servername + " 221 " + client + " :" + user_modes + "\r\n")
