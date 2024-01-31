@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/30 16:17:24 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/31 11:06:12 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@ public:
 	bool							isOperator(std::string const &nick);
 	bool							isInvited(std::string const &nick);
 	bool							isKicked(std::string const &nick);
-	bool							isInviteOnly();
 	void							addToChannel(User *user);
 	void							addToOperators(std::string const &nick);
 	void							addToKickList(std::string const &nick);
@@ -45,7 +44,6 @@ public:
 	std::string const				&getTopic() const;
 	int const						&getUserLimit() const;
 	int								getUserCount() const;
-	void							setInviteOnly(bool const &flag);
 
 	bool 							UserOnChannel(std::string const &nick);
 	User 							*getUser(std::string const &nick) const;
@@ -67,7 +65,6 @@ private:
 	std::string						_channelName;
 	std::string						_channelKey;
 	std::string						_nickList;
-	bool							_inviteOnly;
 	int								_userLimit;
 	// bit set for channel modes
 	u_int8_t						_modes;

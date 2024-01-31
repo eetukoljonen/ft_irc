@@ -32,7 +32,8 @@ public:
 	std::string const						&getPass() const;
 	std::map<int, User *>					&getUsersMap();
 	Channel									*getChannelByName(std::string const &name) const;
-	User									*_findUserByNick(std::string nick) const;
+	User									*_findUserByNick(std::string const &nick) const;
+	User									*_findUserByUsername(std::string const &username) const;
 	void									addNewChannel(Channel *channel);
 	std::vector<struct pollfd>::iterator	findPollStructByFd(int fd);
 	void 									deleteUser(int fd);

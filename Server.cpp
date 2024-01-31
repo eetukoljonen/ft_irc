@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/01/29 15:41:20 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/31 10:27:09 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,7 +236,7 @@ std::map<int, User *> &Server::getUsersMap() {
 	return _usersMap;
 }
 
-User *Server::_findUserByNick(std::string nick) const
+User *Server::_findUserByNick(std::string const &nick) const
 {
 	auto it = _usersMap.begin();
 
@@ -247,6 +247,19 @@ User *Server::_findUserByNick(std::string nick) const
 		it++;
 	}
 	return nullptr;
+}
+
+User *Server::_findUserByUsername(std::string const &username) const
+{
+	std::map<int, User *>::const_iterator it = _usersMap.cbegin();
+	std::map<int, User *>::const_iterator ite = _usersMap.cend();
+	while (it != ite)
+	{
+		if (!it->second->getUser().compare(username))
+			return (it->second);
+		it++;
+	}
+	return (nullptr);
 }
 
 void Server::addNewChannel(Channel *channel)

@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/30 16:16:26 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/31 11:56:00 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,7 +102,7 @@ void CommandExecution::_joinSucces(Channel *channel)
 
 void CommandExecution::_joinExistingChannel(Channel *channel, std::string const &key)
 {
-	if (channel->isInviteOnly() && !channel->isInvited(_user->getNick()))
+	if (channel->getChannelMode() & MODE_i && !channel->isInvited(_user->getNick()))
 		_user->addToSendBuffer(ERR_INVITEONLYCHAN(_server->getName(), _user->getNick(), channel->getChannelName()));
 	else if (channel->getUserCount() == channel->getUserLimit())
 		_user->addToSendBuffer(ERR_CHANNELISFULL(_server->getName(), _user->getNick(), channel->getChannelName()));
@@ -229,12 +229,14 @@ void CommandExecution::_nick()
 {
 	if (!_isValidNick())
 		return ;
-	_user->setNick(_command.getParams().at(0));
 	if (!_user->isRegistered() && !_user->getUser().empty() && _user->isPassCorrect())
 	{
 		_user->setRegistrationFlag(true);
 		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
 	}
+	else if (_user->isRegistered())
+		_user->addToSendBuffer(NICK(user_id(_user->getNick(), _user->getUser(), _user->getIP()), _command.getParams().at(0)));
+	_user->setNick(_command.getParams().at(0));
 }
 
 void CommandExecution::_motd()
@@ -249,6 +251,11 @@ void CommandExecution::_motd()
 
 void CommandExecution::_userF()
 {
+	if (_user->isRegistered())
+	{
+		_user->addToSendBuffer(ERR_ALREADYREGISTERED(_server->getName()));
+		return ;
+	}
 	std::vector<std::string> const &parameters = _command.getParams();
 	size_t const &paramSize = parameters.size();
 	if (paramSize < 4)
@@ -256,7 +263,7 @@ void CommandExecution::_userF()
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), _command.getCommand()));
 		return ;
 	}
-	std::string user = _command.getParams().at(0);
+	std::string const &user = _command.getParams().at(0);
 	_user->setUser(user);
 	int mode = 0;
 	try
@@ -301,6 +308,7 @@ void CommandExecution::_userMode()
 
 void CommandExecution::_removeChannelModes(Channel *channel, std::string const &mode, std::string const &channelName, std::vector<std::string> const &modeParams)
 {
+	size_t paramIndex = 0;
 	for (size_t i = 0; i < mode.size(); i++)
 	{
 		switch (mode[i])
@@ -308,7 +316,6 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 		case 'i':
 			if (channel->getChannelMode() & MODE_i)
 			{
-				channel->setInviteOnly(false);
 				channel->removeChannelMode(MODE_i);
 				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-i"));
 			}
@@ -335,22 +342,23 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 			}
 			break;
 		case 'o':
-			if (modeParams.size() <= i)
+			if (modeParams.size() <= paramIndex)
 				_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE"));
 			else
 			{
 				// checking that user exist with this nickname on the whole server
-				if (_server->_findUserByNick(modeParams[i]) == nullptr)
-					_user->addToSendBuffer(ERR_NOSUCHNICK(_server->getName(), _user->getNick(), modeParams[i]));
-				else if (!channel->UserOnChannel(modeParams[i])) // checking if on channel
-					_user->addToSendBuffer(ERR_USERNOTONCHANNEL(_server->getName(), _user->getNick(), modeParams[i], channelName));
+				if (_server->_findUserByNick(modeParams[paramIndex]) == nullptr)
+					_user->addToSendBuffer(ERR_NOSUCHNICK(_server->getName(), _user->getNick(), modeParams[paramIndex]));
+				else if (!channel->UserOnChannel(modeParams[paramIndex])) // checking if on channel
+					_user->addToSendBuffer(ERR_USERNOTONCHANNEL(_server->getName(), _user->getNick(), modeParams[paramIndex], channelName));
 				else
 				{
 					// removing the op privilages
-					channel->removeOperatorPrivilages(modeParams[i]);
-					channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-o " + modeParams[i]));
+					channel->removeOperatorPrivilages(modeParams[paramIndex]);
+					channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-o " + modeParams[paramIndex]));
 					// _user->addToSendBuffer(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, mode[i]));
 				}
+				paramIndex++;
 			}
 			break ;
 		default :
@@ -370,7 +378,6 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 		case 'i':
 			if (!(channel->getChannelMode() & MODE_i))
 			{
-				channel->setInviteOnly(true);
 				channel->addChannelMode(MODE_i);
 				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+i"));
 			}
@@ -406,12 +413,12 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 			{
 				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+k " + modeParams[paramIndex]));
 				channel->addChannelMode(MODE_k);
-				channel->setChannelKey(modeParams[i]);
+				channel->setChannelKey(modeParams[paramIndex]);
 			}
 			paramIndex++;
 			break;
 		case 'o':
-			if (modeParams.size() <= i)
+			if (modeParams.size() <= paramIndex)
 				_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE +o"));
 			else
 			{
@@ -481,6 +488,11 @@ void CommandExecution::_mode()
 
 void CommandExecution::_pass()
 {
+	if (_user->isRegistered())
+	{
+		_user->addToSendBuffer(ERR_ALREADYREGISTERED(_server->getName()));
+		return ;
+	}
 	if (_command.getParams().empty())
 	{
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "PASS"));

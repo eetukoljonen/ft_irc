@@ -6,13 +6,13 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/30 15:33:04 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/31 10:43:59 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 
-Channel::Channel() : _inviteOnly(false), _userLimit(100), _modes(0) {}
+Channel::Channel() : _userLimit(100), _modes(0) {}
 
 Channel::Channel(Channel const &cpy)
 {
@@ -20,10 +20,6 @@ Channel::Channel(Channel const &cpy)
 	_invitedUsers = cpy._invitedUsers;
 	_kickedUsers = cpy._kickedUsers;
 	_operators = cpy._operators;
-	_inviteOnly = cpy._inviteOnly;
-	_userLimit = cpy._userLimit;
-	_topic = cpy._topic;
-	_inviteOnly = cpy._inviteOnly;
 	_userLimit = cpy._userLimit;
 	_topic = cpy._topic;
 	_modes = cpy._modes;
@@ -39,10 +35,6 @@ Channel &Channel::operator=(Channel const &rhs)
 		_invitedUsers = rhs._invitedUsers;
 		_kickedUsers = rhs._kickedUsers;
 		_operators = rhs._operators;
-		_inviteOnly = rhs._inviteOnly;
-		_userLimit = rhs._userLimit;
-		_topic = rhs._topic;
-		_inviteOnly = rhs._inviteOnly;
 		_userLimit = rhs._userLimit;
 		_topic = rhs._topic;
 		_modes = rhs._modes;
@@ -95,11 +87,6 @@ void Channel::addToKickList(std::string const &nick)
 	_kickedUsers.push_back(nick);
 }
 
-bool Channel::isInviteOnly()
-{
-	return _inviteOnly;
-}
-
 void Channel::setChannelName(std::string const &name)
 {
 	_channelName = name;
@@ -138,11 +125,6 @@ int const &Channel::getUserLimit() const
 int Channel::getUserCount() const
 {
 	return (_users.size());
-}
-
-void Channel::setInviteOnly(bool const &flag)
-{
-	_inviteOnly = flag;
 }
 
 bool Channel::UserOnChannel(std::string const &nick)

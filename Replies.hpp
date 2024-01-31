@@ -51,10 +51,12 @@
 
 #define RPL_KILL(server, killed, comment) (server + " KILL " + killed + " Kill" + comment + "\r\n")
 #define ERR_NOSUCHNICK(servername, client, nickname) (":" + servername + " 401 " + client + " " + nickname + " :No such nick/channel.\r\n")
+# define NICK(user_id, new_nick) (user_id + " NICK " + ":" + new_nick + "\r\n")
 
 //user
 
 # define RPL_UMODEIS(servername, client, user_modes) (":" + servername + " 221 " + client + " :" + user_modes + "\r\n")
+# define ERR_ALREADYREGISTERED(servername) (":" + servername + " 462 :Unauthorized command (already registered)\r\n")
 // # define ERR_UMODEUNKNOWNFLAG(servername, client, unknown_mode) (":" + servername + " * 501 " + client + " :Unknown mode flag '" + unknown_mode + "'\r\n")
 
 //join
@@ -83,8 +85,8 @@
     (":" + kickerNick + "!" + server + " KICK " + "#" + channel + " " + kickedUser + " " + reason + "\r\n")
 # define RPL_KICKBROADCAST(kickerNick, kickerUsername, serverName, channel, kicked, reason) \
     (user_id(kickerNick, kickerUsername, serverName) + " KICK #" + channel + " " + kicked + " :" + reason + "\r\n")
-# define ERR_CHANOPRIVSNEEDED(server, userNick, channel) \
-    (":" + server + " 482 " + userNick + " " + channel + " :You're not channel operator\r\n")
+// # define ERR_CHANOPRIVSNEEDED(server, userNick, channel) \
+//     (":" + server + " 482 " + userNick + " " + channel + " :You're not channel operator\r\n")
 
 /* INVITE */
 
@@ -136,3 +138,6 @@
 # define USERMODE(user_id, client, mode) (user_id + " MODE " + client + " :" + mode + "\r\n")
 # define CHANNELMODE(user_id, channel, mode) (user_id + " MODE #" + channel + " " + mode + "\r\n")
 # define RPL_CHANNELMODIS(servername, client, channel, channelmodes) (":" + servername + " 324 " + client + " #" + channel + " " + channelmodes + "\r\n")
+
+// err channel operator
+# define ERR_CHANOPRIVSNEEDED(servername, channel, client) (":" + servername + " 482" + client + " #" + channel + " :You're not channel operator\r\n")
