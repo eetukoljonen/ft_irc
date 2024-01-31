@@ -30,6 +30,7 @@
 # define RPL_CREATED(server, client, datetime) (":" + server + " 003 " + client + " :This server was created " + datetime + "\r\n")
 # define RPL_MYINFO(server, client, version, user_modes, chan_modes, chan_param_modes) (":" + server + " 004 " + client + " " + server + " " + version + " " + user_modes + " " + chan_modes + " " + chan_param_modes + "\r\n")
 # define RPL_ISUPPORT(server, client, tokens) (":" + server " 005 " + client + " " + tokens + " :are supported by this server\r\n")
+# define NICK(user_id, new_nick) (user_id + " NICK " + ":" + new_nick + "\r\n")
 
 # define ERR_NOMOTD(server, client) (":" + server + " 422 " + client + " :MOTD File is missing\r\n")
 

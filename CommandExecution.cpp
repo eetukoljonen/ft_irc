@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/29 17:18:15 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/01/31 11:49:37 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -232,13 +232,15 @@ bool CommandExecution::_isValidNick()
 void CommandExecution::_nick()
 {
 	if (!_isValidNick())
-		return ;
-	_user->setNick(_command.getParams().at(0));
-	if (!_user->isRegistered() && !_user->getUser().empty() && _user->isPassCorrect())
-	{
-		_user->setRegistrationFlag(true);
-		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
-	}
+        return ;
+    if (!_user->isRegistered() && !_user->getUser().empty() && _user->isPassCorrect())
+    {
+        _user->setRegistrationFlag(true);
+        _user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
+    }
+    else if (_user->isRegistered())
+        _user->addToSendBuffer(NICK(user_id(_user->getNick(), _user->getUser(), _user->getIP()), _command.getParams().at(0)));
+    _user->setNick(_command.getParams().at(0));
 }
 
 void CommandExecution::_motd()
@@ -548,9 +550,13 @@ void CommandExecution::_privmsg()
 
 	std::string const &receiver = _command.getParams()[0];
 	std::string const &msg = _command.getParams()[1];
+	if (msg.find(":") == std::string::npos)
+	{
+		_user->addToInputBuffer(ERR_NOTEXTTOSEND(userNick));
+	}
 	
-	std::cout << "receiver is :" << receiver << std::endl;
-	std::cout << "privmsg is :" << msg << std::endl;
+	std::cout << "receiver is " << receiver << std::endl;
+	std::cout << "privmsg is " << msg << std::endl;
 
 	Channel* channel = _server->getChannelByName(receiver); // Maybe change this function to include the #
 	
@@ -579,15 +585,3 @@ void CommandExecution::_privmsg()
 			_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
 	}	
 }
-// 	size_t      delimiter = cmd_infos.message.rfind(":");
-//    if (delimiter == std::string::npos) // pas de : -> donc pas de message
-//    {
-//       addToClientBuffer(server, client_fd, ERR_NOTEXTTOSEND(it_client->second.getNickname()));
-//       return ;
-//    }
-//    target = cmd_infos.message.substr(1, delimiter - 1); // s'arrete avant le delimiter
-//    if (target.empty())
-//    {
-//       addToClientBuffer(server, client_fd, ERR_NORECIPIENT(it_client->second.getNickname()));
-//       return ;
-//    }
