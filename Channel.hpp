@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/31 11:06:12 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/31 15:07:57 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ public:
 	std::string const				&getChannelName() const;
 	void							setChannelKey(std::string const &key);
 	std::string const				&getChannelkey() const;
-	std::string const				&getNickList() const;
+	std::string						getNickList();
 	std::string const				&getTopic() const;
 	int const						&getUserLimit() const;
 	int								getUserCount() const;
@@ -48,6 +48,7 @@ public:
 	bool 							UserOnChannel(std::string const &nick);
 	User 							*getUser(std::string const &nick) const;
 	void							broadcastToChannel(const std::string& msg);
+	void							broadcastToChannel(const std::string& msg, User *ignoredUser);
 	std::map<std::string, User *>	&getUsersMap();
 	void							removeFromChannel(std::string const &nick);
 	void							removeOperatorPrivilages(std::string const &nick);
@@ -64,7 +65,6 @@ private:
 	std::string						_topic;
 	std::string						_channelName;
 	std::string						_channelKey;
-	std::string						_nickList;
 	int								_userLimit;
 	// bit set for channel modes
 	u_int8_t						_modes;

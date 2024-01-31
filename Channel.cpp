@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/31 10:43:59 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/31 13:03:15 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,9 +67,6 @@ void Channel::addToChannel(User *user)
 {
 	std::string const &nick = user->getNick();
 	_users[nick] = user;
-	if (!_nickList.empty())
-		_nickList.append(" ");
-	_nickList.append(nick);
 }
 
 void Channel::addToOperators(std::string const &nick)
@@ -107,9 +104,22 @@ std::string const &Channel::getChannelkey() const
 	return (_channelKey);
 }
 
-std::string const &Channel::getNickList() const
+std::string Channel::getNickList()
 {
-	return (_nickList);
+	std::string nicklist;
+	std::map<std::string, User *>::const_iterator it = _users.cbegin();
+	std::map<std::string, User *>::const_iterator ite = _users.cend();
+	while (it != ite)
+	{
+		if (!nicklist.empty())
+			nicklist += " ";
+		if (isOperator(it->first))
+			nicklist +=  "@" + it->first;
+		else
+			nicklist += it->first;
+		it++;
+	}
+	return (nicklist);
 }
 
 std::string const &Channel::getTopic() const
@@ -148,14 +158,24 @@ std::map<std::string, User *>	&Channel::getUsersMap()
 	return _users;
 }
 
-void Channel::broadcastToChannel(std::string const & msg) 
+
+// here we send the msg to everyone on the channel except the ignoredUser, usually
+// the ignoredUser will be the sender of the msg, PRIVMSG for example
+void Channel::broadcastToChannel(std::string const &msg, User *ignoredUser) 
 {
 	std::map<std::string, User *>::iterator it;
-	
     for(it = _users.begin(); it != _users.end(); ++it)
 	{
-        it->second->addToSendBuffer(msg);
+		if (it->second != ignoredUser)
+       		it->second->addToSendBuffer(msg);
 	}
+}
+
+void Channel::broadcastToChannel(std::string const &msg) 
+{
+	std::map<std::string, User *>::iterator it;
+    for(it = _users.begin(); it != _users.end(); ++it)
+       	it->second->addToSendBuffer(msg);
 }
 
 void	Channel::removeFromChannel(std::string const &nick)
@@ -164,11 +184,6 @@ void	Channel::removeFromChannel(std::string const &nick)
 	if (it != _users.end())
 		_users.erase(it);
 	_kickedUsers.push_back(nick);
-	size_t i = _nickList.find(nick);
-	// std::cout << "nicklist bfore = " << _nickList << std::endl;
-	if (i != std::string::npos)
-		_nickList.erase(i, nick.size() + 1);
-	// std::cout << "nicklist after = " << _nickList << std::endl;
 }
 
 void Channel::removeOperatorPrivilages(std::string const &nick)

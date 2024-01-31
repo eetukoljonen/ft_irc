@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/01/31 12:05:18 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/31 15:50:34 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -299,12 +299,14 @@ void Server::deleteUser(int fd)
 {
 	auto it_map = _usersMap.find(fd);
 	auto it_poll = findPollStructByFd(fd);
-	if (it_map != _usersMap.end() && it_poll != _pollfds.end()) 
+	if (it_map != _usersMap.end() || it_poll != _pollfds.end()) 
 	{
 		std::cout << "found user " << it_map->second->getNick() << std::endl;
 		close(fd);
-		_usersMap.erase(it_map);
-		_pollfds.erase(it_poll);
+		if (it_map != _usersMap.end())
+			_usersMap.erase(it_map);
+		if (it_poll != _pollfds.end())
+			_pollfds.erase(it_poll);
 	}
 	else 
 		std::cout << "User not found in map" << std::endl;

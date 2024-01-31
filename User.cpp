@@ -221,3 +221,13 @@ std::string const &User::getPongResponse() const
 {
 	return (_pongRespone);
 }
+
+std::vector<Channel *> User::getChannels() const
+{
+	return (_channels);
+}
+
+void User::addNewChannel(Channel *channel)
+{
+	_channels.push_back(channel);
+}
