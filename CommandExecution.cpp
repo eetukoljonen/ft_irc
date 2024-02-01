@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/01 10:53:31 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/01 10:55:12 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -228,8 +228,6 @@ void CommandExecution::_nick()
 {
 	if (!_isValidNick())
 		return ;
-	std::string const &oldNick = _user->getNick();
-	_user->setNick(_command.getParams().at(0));
 	std::string const &oldNick = _user->getNick();
 	_user->setNick(_command.getParams().at(0));
 	if (!_user->isRegistered() && !_user->getUser().empty() && _user->isPassCorrect())
