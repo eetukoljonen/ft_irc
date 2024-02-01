@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/01 10:55:12 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/01 15:57:39 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 	_server = server;
 	_user = user;
 	_command = command;
-	std::string	Cmds[14] = 
+	std::string	Cmds[15] = 
 	{
 		"JOIN",
 		"NICK",
@@ -57,13 +57,14 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		"PONG",
 		"INVITE",
 		"PRIVMSG",
-		"QUIT"
+		"QUIT",
+		"TOPIC"
     };
     
     int i = 0;
 	std::string _command = command.getCommand();
 	std::cout << "commnad = " << _command << std::endl;
-    while (i < 14)
+    while (i < 15)
     {
         if (!_command.compare(Cmds[i]))
             break;
@@ -86,6 +87,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 11: _invite(); break;
 		case 12: _privmsg(); break;
 		case 13: _quit(); break;
+		case 14: _topic(); break;
 		default: /*TODO send the user ERR_UNKNOWNCOMMAND*/ break;
 	}
 }
@@ -219,17 +221,13 @@ bool CommandExecution::_isValidNick()
 	return (true);
 }
 
-//todo error when user is registered and trying to change the nick
-
-//todo error when user is registered and trying to change the nick
-
-//>> :tngnet.nl.quakenet.org 433 * atuliara :Nickname is already in use.
 void CommandExecution::_nick()
 {
 	if (!_isValidNick())
 		return ;
-	std::string const &oldNick = _user->getNick();
-	_user->setNick(_command.getParams().at(0));
+	std::string const oldNick = _user->getNick();
+	std::string const newNick = _command.getParams().at(0);
+	_user->setNick(newNick);
 	if (!_user->isRegistered() && !_user->getUser().empty() && _user->isPassCorrect())
 	{
 		_user->setRegistrationFlag(true);
@@ -245,6 +243,8 @@ void CommandExecution::_nick()
 			while (it != ite)
 			{
 				Channel *channel = *it;
+				channel->removeFromChannel(oldNick);
+				channel->addToChannel(_user);
 				channel->broadcastToChannel(NICK(user_id(oldNick, _user->getUser(), _user->getIP()), _command.getParams().at(0)), _user);
 				it++;
 			}
@@ -443,10 +443,8 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 					_user->addToSendBuffer(ERR_USERNOTONCHANNEL(_server->getName(), _user->getNick(), modeParams[paramIndex], channelName));
 				else
 				{
-					// removing the op privilages
 					channel->addToOperators(modeParams[paramIndex]);
 					channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+o " + modeParams[paramIndex]));
-					// _user->addToSendBuffer(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, mode[i]));
 				}
 				paramIndex++;
 			}
@@ -472,6 +470,11 @@ void CommandExecution::_channelMode()
 	if (paramSize == 1)
 	{
 		_user->addToSendBuffer(RPL_CHANNELMODIS(_server->getName(), _user->getNick(), channelName, channel->getChannelModeString()));
+		return ;
+	}
+	if (!channel->isOperator(_user->getNick()))
+	{
+		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(_server->getName(), channelName, _user->getNick()));
 		return ;
 	}
 	std::string const &mode = cmdParams[1];
@@ -697,7 +700,7 @@ void CommandExecution::_pong()
 	std::string response = parameters[0];
 	if (response[0] == ':')
 		response = response.substr(1);
-	if (response.compare(_user->getPongResponse()))
+	if (!response.compare(_user->getPongResponse()))
 		_user->resetPingResponseTimer();
 }
 
@@ -745,6 +748,7 @@ void CommandExecution::_privmsg()
 	// std::cout << "privmsg is " << msg << std::endl;
 
 	Channel* channel = _server->getChannelByName(&receiver[1]);
+	//todo add bad channel mask check
 	
 	if (!receiver.empty() && receiver[0] == '#')
 	{
@@ -794,4 +798,52 @@ void CommandExecution::_quit()
 	}
 	_server->deleteUser(_user->getUserInfo().fd);
 	// todo check deleteUser function
+}
+
+void CommandExecution::_topic()
+{
+	std::vector<std::string> const &cmdParams = _command.getParams();
+	size_t paramSize = cmdParams.size();
+	if (paramSize == 0)
+	{
+		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "TOPIC"));
+		return ;
+	}
+	std::string channelName = cmdParams[0];
+	if (!isValidChannelName(channelName))
+	{
+		_user->addToSendBuffer(ERR_BADCHANMASK(_server->getName(), _user->getNick(), channelName));
+		return ;
+	}
+	channelName = channelName.substr(1);
+	Channel *channel = _server->getChannelByName(channelName);
+	if (channel == nullptr)
+	{
+		_user->addToSendBuffer(ERR_NOSUCHCHANNEL(_server->getName(), _user->getNick(), channelName));
+		return ;
+	}
+	if (paramSize == 1)
+	{
+		if (channel->getTopic().empty())
+			_user->addToSendBuffer(RPL_NOTOPIC(_server->getName(), _user->getNick(), channelName));
+		else
+			_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), channelName, channel->getTopic()));
+		return ;
+	}
+	if (channel->getChannelMode() & MODE_t && !channel->isOperator(_user->getNick()))
+	{
+		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(_server->getName(), channelName, _user->getNick()));
+		return ;
+	}
+	std::string topic = cmdParams[1];
+	if (!topic.empty() && topic[0] == ':')
+		topic = topic.substr(1);
+	if (topic.empty())
+		channel->clearTopic();
+	else
+		channel->setTopic(topic);
+	if (channel->getTopic().empty())
+		_user->addToSendBuffer(RPL_NOTOPIC(_server->getName(), _user->getNick(), channelName));
+	else
+		_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), channelName, channel->getTopic()));
 }
