@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/31 16:08:12 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/01 10:41:19 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -728,10 +728,10 @@ void CommandExecution::_privmsg()
 		_user->addToInputBuffer(ERR_NOTEXTTOSEND(userNick));
 	}
 	
-	std::cout << "receiver is " << receiver << std::endl;
-	std::cout << "privmsg is " << msg << std::endl;
+	// std::cout << "receiver is " << receiver << std::endl;
+	// std::cout << "privmsg is " << msg << std::endl;
 
-	Channel* channel = _server->getChannelByName(&receiver[1]); // Maybe change this function to include the #
+	Channel* channel = _server->getChannelByName(&receiver[1]);
 	
 	if (!receiver.empty() && receiver[0] == '#')
 	{
