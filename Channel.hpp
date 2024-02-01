@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/01 10:49:38 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/01 15:35:13 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,8 @@ public:
 	std::string const				&getChannelkey() const;
 	std::string						getNickList();
 	std::string const				&getTopic() const;
+	void							clearTopic();
+	void							setTopic(std::string const &topic);
 	int const						&getUserLimit() const;
 	int								getUserCount() const;
 

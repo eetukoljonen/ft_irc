@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/01 10:49:11 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/01 15:40:20 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,7 +182,6 @@ void	Channel::removeFromChannel(std::string const &nick)
 	std::map<std::string, User *>::iterator it = _users.find(nick);
 	if (it != _users.end())
 		_users.erase(it);
-	_kickedUsers.push_back(nick);
 }
 
 void Channel::removeOperatorPrivilages(std::string const &nick)
@@ -223,4 +222,14 @@ std::string Channel::getChannelModeString()
 		mode += 'l';
 	//returning a string with a + in front of it if its not empty
 	return (mode.empty() ? mode : "+" + mode);
+}
+
+void Channel::clearTopic()
+{
+	_topic.clear();
+}
+
+void Channel::setTopic(std::string const &topic)
+{
+	_topic = topic;
 }

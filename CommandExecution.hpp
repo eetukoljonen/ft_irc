@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:01 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/31 14:28:48 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/01 13:49:16 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,8 @@ private:
 	static void		_privmsg();
 	//quit
 	static void		_quit();
+	//topic
+	static void		_topic();
 };
 
 
