@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/31 12:56:26 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/01 10:49:38 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,15 +40,15 @@ public:
 	std::string const				&getChannelName() const;
 	void							setChannelKey(std::string const &key);
 	std::string const				&getChannelkey() const;
-	std::string const				&getNickList() const;
+	std::string						getNickList();
 	std::string const				&getTopic() const;
 	int const						&getUserLimit() const;
 	int								getUserCount() const;
 
 	bool 							UserOnChannel(std::string const &nick);
 	User 							*getUser(std::string const &nick) const;
-	void							broadcastToChannel(std::string const &msg);
-	void							broadcastToChannel(std::string const &msg, User *user);
+	void							broadcastToChannel(const std::string& msg);
+	void							broadcastToChannel(const std::string& msg, User *ignoredUser);
 	std::map<std::string, User *>	&getUsersMap();
 	void							removeFromChannel(std::string const &nick);
 	void							removeOperatorPrivilages(std::string const &nick);
@@ -65,7 +65,6 @@ private:
 	std::string						_topic;
 	std::string						_channelName;
 	std::string						_channelKey;
-	std::string						_nickList;
 	int								_userLimit;
 	// bit set for channel modes
 	u_int8_t						_modes;

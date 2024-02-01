@@ -27,7 +27,6 @@
 # define RPL_CREATED(server, client, datetime) (":" + server + " 003 " + client + " :This server was created " + datetime + "\r\n")
 # define RPL_MYINFO(server, client, version, user_modes, chan_modes, chan_param_modes) (":" + server + " 004 " + client + " " + server + " " + version + " " + user_modes + " " + chan_modes + " " + chan_param_modes + "\r\n")
 # define RPL_ISUPPORT(server, client, tokens) (":" + server " 005 " + client + " " + tokens + " :are supported by this server\r\n")
-# define NICK(user_id, new_nick) (user_id + " NICK " + ":" + new_nick + "\r\n")
 
 # define ERR_NOMOTD(server, client) (":" + server + " 422 " + client + " :MOTD File is missing\r\n")
 
@@ -49,27 +48,13 @@
 
 #define RPL_KILL(server, killed, comment) (server + " KILL " + killed + " Kill" + comment + "\r\n")
 #define ERR_NOSUCHNICK(servername, client, nickname) (":" + servername + " 401 " + client + " " + nickname + " :No such nick/channel.\r\n")
-# define NICK(user_id, new_nick) (user_id + " NICK " + ":" + new_nick + "\r\n")
+# define NICK(user_id, new_nick) (user_id + " NICK :" + new_nick + "\r\n")
 
 //user
 
 # define RPL_UMODEIS(servername, client, user_modes) (":" + servername + " 221 " + client + " :" + user_modes + "\r\n")
 # define ERR_ALREADYREGISTERED(servername) (":" + servername + " 462 :Unauthorized command (already registered)\r\n")
 // # define ERR_UMODEUNKNOWNFLAG(servername, client, unknown_mode) (":" + servername + " * 501 " + client + " :Unknown mode flag '" + unknown_mode + "'\r\n")
-
-//join
-# define ERR_INVITEONLYCHAN(servername, client, channel) (":" + servername + " 473 " + client + " " + channel + " :Cannot join channel (+i)\r\n")
-# define ERR_BADCHANNELKEY(servername, client, channel) (":" + servername + " 475 " + client + " " + channel + " :Cannot join channel (+k)\r\n")
-# define ERR_CHANNELISFULL(servername, client, channel) (":" + servername + " 471 " + client + " " + channel + " :Cannot join channel (+l)\r\n")
-# define ERR_BADCHANMASK(servername, client, channel) (":" + servername + " 476 " + client + " " + channel + " :Bad Channel Mask\r\n")
-# define ERR_NOSUCHCHANNEL(servername, client, channel) (":" + servername + " 403 " + client + " " + channel + " :No such channel\r\n")
-# define ERR_TOOMANYCHANNELS(servername, client, channel) (":" + servername + " 405 " + client + " " + channel + " :You have joined too many channels\r\n")
-# define ERR_TOOMANYTARGETS(servername, client, target) (":" + servername + " 407 " + client + " " + target + " :Too many recipients\r\n")
-# define ERR_UNAVAILRESOURCE(servername, client, target) (":" + servername + " 437 " + client + " " + target + " :Cannot change nickname while services are running\r\n")
-# define RPL_TOPIC(servername, client, channel, topic) (":" + servername + " 332 " + client + " " + channel + " :" + topic + "\r\n")
-# define RPL_NAMES(servername, channel, userlist, client) (":" + servername + " 353 " + client + " " + channel + " :" + userlist + "\r\n")
-# define RPL_ENDOFNAMES(servername, channel, client) (":" + servername + " 366 " + client + " " + channel + " :End of /NAMES list.\r\n")
-# define RPL_NOTOPIC(servername, client, channel) (":" + servername + " 331 " + client + " " + channel + " :No topic is set\r\n")
 
 #define RPL_KILL(server, killed, comment) (server + " KILL " + killed + " Kill" + comment + "\r\n")
 #define ERR_NOSUCHNICK(servername, client, nickname) (":" + servername + " 401 " + client + " " + nickname + " :No such nick/channel.\r\n")
@@ -115,18 +100,18 @@
 // # define ERR_UMODEUNKNOWNFLAG(servername, client, unknown_mode) (":" + servername + " * 501 " + client + " :Unknown mode flag '" + unknown_mode + "'\r\n")
 
 //join
-# define ERR_INVITEONLYCHAN(servername, client, channel) (":" + servername + " 473 " + client + " " + channel + " :Cannot join channel (+i)\r\n")
-# define ERR_BADCHANNELKEY(servername, client, channel) (":" + servername + " 475 " + client + " " + channel + " :Cannot join channel (+k)\r\n")
-# define ERR_CHANNELISFULL(servername, client, channel) (":" + servername + " 471 " + client + " " + channel + " :Cannot join channel (+l)\r\n")
-# define ERR_BADCHANMASK(servername, client, channel) (":" + servername + " 476 " + client + " " + channel + " :Bad Channel Mask\r\n")
-# define ERR_NOSUCHCHANNEL(servername, client, channel) (":" + servername + " 403 " + client + " " + channel + " :No such channel\r\n")
-# define ERR_TOOMANYCHANNELS(servername, client, channel) (":" + servername + " 405 " + client + " " + channel + " :You have joined too many channels\r\n")
+# define ERR_INVITEONLYCHAN(servername, client, channel) (":" + servername + " 473 " + client + " #" + channel + " :Cannot join channel (+i)\r\n")
+# define ERR_BADCHANNELKEY(servername, client, channel) (":" + servername + " 475 " + client + " #" + channel + " :Cannot join channel (+k)\r\n")
+# define ERR_CHANNELISFULL(servername, client, channel) (":" + servername + " 471 " + client + " #" + channel + " :Cannot join channel (+l)\r\n")
+# define ERR_BADCHANMASK(servername, client, channel) (":" + servername + " 476 " + client + " #" + channel + " :Bad Channel Mask\r\n")
+# define ERR_NOSUCHCHANNEL(servername, client, channel) (":" + servername + " 403 " + client + " #" + channel + " :No such channel\r\n")
+# define ERR_TOOMANYCHANNELS(servername, client, channel) (":" + servername + " 405 " + client + " #" + channel + " :You have joined too many channels\r\n")
 # define ERR_TOOMANYTARGETS(servername, client, target) (":" + servername + " 407 " + client + " " + target + " :Too many recipients\r\n")
 # define ERR_UNAVAILRESOURCE(servername, client, target) (":" + servername + " 437 " + client + " " + target + " :Cannot change nickname while services are running\r\n")
-# define RPL_TOPIC(servername, client, channel, topic) (":" + servername + " 332 " + client + " " + channel + " :" + topic + "\r\n")
-# define RPL_NAMES(servername, channel, userlist, client) (":" + servername + " 353 " + client + " " + channel + " :" + userlist + "\r\n")
-# define RPL_ENDOFNAMES(servername, channel, client) (":" + servername + " 366 " + client + " " + channel + " :End of /NAMES list.\r\n")
-# define RPL_NOTOPIC(servername, client, channel) (":" + servername + " 331 " + client + " " + channel + " :No topic is set\r\n")
+# define RPL_TOPIC(servername, client, channel, topic) (":" + servername + " 332 " + client + " #" + channel + " :" + topic + "\r\n")
+# define RPL_NAMES(servername, channel, userlist, client) (":" + servername + " 353 " + client + " = #" + channel + " :" + userlist + "\r\n")
+# define RPL_ENDOFNAMES(servername, channel, client) (":" + servername + " 366 " + client + " #" + channel + " :End of /NAMES list.\r\n")
+# define RPL_NOTOPIC(servername, client, channel) (":" + servername + " 331 " + client + " #" + channel + " :No topic is set\r\n")
 # define RPL_JOIN(user_id, command, channel) (user_id + " " + command + " #" + channel + "\r\n")
 //PING PONG
 # define PING(servername, msg) (":" + servername + " PING :" + msg + "\r\n")
@@ -145,3 +130,6 @@
 
 // err channel operator
 # define ERR_CHANOPRIVSNEEDED(servername, channel, client) (":" + servername + " 482" + client + " #" + channel + " :You're not channel operator\r\n")
+
+//quit
+# define QUIT(user_id, msg) (user_id + " QUIT " + msg + "\r\n")

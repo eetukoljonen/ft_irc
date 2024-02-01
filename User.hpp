@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/26 15:05:53 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/01/31 16:21:00 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@
 #include <iostream>
 #include <vector>
 #include <time.h>
+
+class Channel;
 
 typedef struct s_client
 {
@@ -67,6 +69,8 @@ public:
 	time_t const				&getPingResponseTimer();
 	void						setPongResponse(std::string const &msg);
 	std::string const			&getPongResponse() const;
+	std::vector<Channel *>		getChannels() const;
+	void						addNewChannel(Channel *channel);
 private:
 	std::string					_nick;
 	std::string					_user;
@@ -74,6 +78,7 @@ private:
 	t_client					_userInfo;
 	std::vector<std::string>	_userInput;
 	std::vector<std::string>	_sendBuffer;
+	std::vector<Channel *>		_channels;
 	std::string					_userModes;
 	bool						_isRegistered;
 	bool						_passFlag;

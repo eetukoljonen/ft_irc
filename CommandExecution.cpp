@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/01 10:41:19 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/01 10:53:31 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 	_server = server;
 	_user = user;
 	_command = command;
-	std::string	Cmds[13] = 
+	std::string	Cmds[14] = 
 	{
 		"JOIN",
 		"NICK",
@@ -56,13 +56,14 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		"PING",
 		"PONG",
 		"INVITE",
-		"PRIVMSG"
+		"PRIVMSG",
+		"QUIT"
     };
     
     int i = 0;
 	std::string _command = command.getCommand();
 	std::cout << "commnad = " << _command << std::endl;
-    while (i < 13)
+    while (i < 14)
     {
         if (!_command.compare(Cmds[i]))
             break;
@@ -84,8 +85,8 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 10: _pong(); break;
 		case 11: _invite(); break;
 		case 12: _privmsg(); break;
-		default: break;
-		// 	addToClientBuffer(this, client_fd, ERR_UNKNOWNCOMMAND(client->getNickname(), cmd_infos.name));
+		case 13: _quit(); break;
+		default: /*TODO send the user ERR_UNKNOWNCOMMAND*/ break;
 	}
 }
 
@@ -100,6 +101,7 @@ void CommandExecution::_joinSucces(Channel *channel)
 		_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), channel->getChannelName(), channel->getTopic()));
 	_user->addToSendBuffer(RPL_NAMES(_server->getName(), channel->getChannelName(), channel->getNickList(),  _user->getNick()));
 	_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), channel->getChannelName(), _user->getNick()));
+	_user->addNewChannel(channel);
 }
 
 void CommandExecution::_joinExistingChannel(Channel *channel, std::string const &key)
@@ -199,11 +201,6 @@ bool CommandExecution::_isValidNick()
 	}
 	std::string const &nick = _command.getParams().at(0);
 	size_t nickSize = nick.size();
-	if (nickSize == 0)
-	{
-		_user->addToSendBuffer(ERR_NONICKNAMEGIVEN(_server->getName()));
-		return (false);
-	}
 	if (nickSize > 9)
 	{
 		_user->addToSendBuffer(ERR_ERRONEUSNICKNAME(_server->getName(), nick));
@@ -222,11 +219,17 @@ bool CommandExecution::_isValidNick()
 	return (true);
 }
 
+//todo error when user is registered and trying to change the nick
+
+//todo error when user is registered and trying to change the nick
+
 //>> :tngnet.nl.quakenet.org 433 * atuliara :Nickname is already in use.
 void CommandExecution::_nick()
 {
 	if (!_isValidNick())
 		return ;
+	std::string const &oldNick = _user->getNick();
+	_user->setNick(_command.getParams().at(0));
 	std::string const &oldNick = _user->getNick();
 	_user->setNick(_command.getParams().at(0));
 	if (!_user->isRegistered() && !_user->getUser().empty() && _user->isPassCorrect())
@@ -236,6 +239,18 @@ void CommandExecution::_nick()
 	}
 	else if (_user->isRegistered())
 	{
+		if (!_user->getChannels().empty())
+		{
+			std::vector<Channel *>				_userChannels	= _user->getChannels();
+			std::vector<Channel *>::iterator	it				= _userChannels.begin();
+			std::vector<Channel *>::iterator	ite				= _userChannels.end();
+			while (it != ite)
+			{
+				Channel *channel = *it;
+				channel->broadcastToChannel(NICK(user_id(oldNick, _user->getUser(), _user->getIP()), _command.getParams().at(0)), _user);
+				it++;
+			}
+		}
 		_user->addToSendBuffer(NICK(user_id(oldNick, _user->getUser(), _user->getIP()), _command.getParams().at(0)));
 	}
 }
@@ -758,4 +773,27 @@ void CommandExecution::_privmsg()
 		else
 			_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
 	}	
+}
+
+void CommandExecution::_quit()
+{
+	std::vector<Channel *>					_usersChannels	= _user->getChannels();
+	if (!_usersChannels.empty())
+	{
+		std::vector<Channel *>::iterator	it				= _usersChannels.begin();
+		std::vector<Channel *>::iterator	ite				= _usersChannels.end();
+		std::string const					&msg			= _command.getParams().at(0);
+		std::string const					&nick			= _user->getNick();
+		std::string const					&user			= _user->getUser();
+		std::string const					&userIP			= _user->getIP();
+		while (it != ite)
+		{
+			Channel *channel = *it;
+			channel->removeFromChannel(nick);
+			channel->broadcastToChannel(QUIT(user_id(nick, user, userIP), msg));
+			it++;
+		}
+	}
+	_server->deleteUser(_user->getUserInfo().fd);
+	// todo check deleteUser function
 }
