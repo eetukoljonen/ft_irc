@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/01 10:55:12 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/01 15:20:56 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,14 +221,11 @@ bool CommandExecution::_isValidNick()
 
 //todo error when user is registered and trying to change the nick
 
-//todo error when user is registered and trying to change the nick
-
-//>> :tngnet.nl.quakenet.org 433 * atuliara :Nickname is already in use.
 void CommandExecution::_nick()
 {
 	if (!_isValidNick())
 		return ;
-	std::string const &oldNick = _user->getNick();
+	std::string const oldNick = _user->getNick();
 	_user->setNick(_command.getParams().at(0));
 	if (!_user->isRegistered() && !_user->getUser().empty() && _user->isPassCorrect())
 	{
@@ -584,7 +581,8 @@ void	CommandExecution::_kick()
     	return;
 	}
 	
-	std::string const &channelName = &_command.getParams()[0][1];
+	//channel name without the hashtag -> added it back in the replies.hpp
+	std::string const &channelName = &_command.getParams()[0][1]; 
 	std::string const &targetUser = _command.getParams()[1];
 	Channel *channel = _server->getChannelByName(channelName);
 	User *target = channel->getUser(targetUser);
@@ -604,7 +602,7 @@ void	CommandExecution::_kick()
 	/* Check user privileges */
 	if (!channel->isOperator(kickerNick))
 	{
-		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(serverName, kickerNick, channelName));
+		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(serverName, channelName, channelName));
 		return ;
 	}
 	/* Check that kicker is on channel */
@@ -616,7 +614,7 @@ void	CommandExecution::_kick()
 	/* Check that kicked is on channel */
 	if (!channel->UserOnChannel(targetUser))
 	{
-		_user->addToSendBuffer(ERR_USERNOTONCHANNEL(serverName, userName, kickerNick, channelName));
+		_user->addToSendBuffer(ERR_USERNOTONCHANNEL(serverName, kickerNick, targetUser, channelName));
 		return ;
 	}
 	if (_command.getParams().size() > 2 && _command.getParams()[2].compare(":"))
@@ -624,7 +622,7 @@ void	CommandExecution::_kick()
 	else
 		reason = "default";
 	std::string const &msg = RPL_KICKEDCLIENT(serverName, kickerNick, \
-								channelName, target->getNick(), reason);
+										channelName, target->getNick(), reason);
 	if (send(target->getUserInfo().fd, msg.c_str(), msg.size(), 0) < 0)
    		std::cerr << "Error sending message: " << strerror(errno) << std::endl;
 	channel->removeFromChannel(targetUser);

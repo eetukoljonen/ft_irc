@@ -1,0 +1,110 @@
+# Connect to the IRC Server
+/connect 127.0.0.1 123 asd
+
+# Set Nickname
+/nick your_nickname
+
+# Join a Channel
+/join #channelname
+
+# Send a Private Message
+/msg another_username Your private message
+
+# Send a Message to the Channel
+/msg #channelname Message to channel
+
+- Operator Commands (assuming you have operator privileges)
+
+# Kick a user from the channel
+/kick #channelname target_username Reason for kick
+
+# Channel Modes
+# Set/remove invite-only channel
+/mode #channelname +i
+/mode #channelname -i
+
+# Set/remove topic restriction to channel operators
+/mode #channelname +t
+/mode #channelname -t
+
+# Set/remove channel password
+/mode #channelname +k channel_password
+/mode #channelname -k channel_password
+
+# Give/take operator privileges
+/mode #channelname +o target_username
+/mode #channelname -o target_username
+
+# Set/remove user limit to channel
+/mode #channelname +l user_limit
+/mode #channelname -l user_limit
+
+# Invite a user to the channel
+/invite target_username #channelname
+
+# Change the channel topic
+/topic #channelname New topic for the channel
+
+- Errors
+
+# Connect to the IRC Server with an incorrect port or password
+/connect 127.0.0.1 999 wrong_password
+# Expected error: Unable to connect or authentication failure
+
+# Attempt to set a nickname that's already in use
+/nick existing_nickname
+# Expected error: Nickname is already in use
+
+# Join a non-existent or restricted channel
+/join #nonexistentchannel
+# Expected error: No such channel or cannot join (if restricted)
+
+# Send a private message to a non-existent user
+/msg non_existing_user Your private message
+# Expected error: No such nick/channel
+
+
+# Send a message to a channel you're not part of
+/msg #otherchannel Message to channel
+# Expected error: Cannot send to channel
+// getting No such nick/channel error.
+
+- Operator Commands without having operator privileges
+
+# Attempt to kick a user without being an operator
+/kick #channelname some_user Reason for kick
+# Expected error: You're not channel operator
+
+# Invite a user to a channel you're not an operator of
+/invite some_user #otherchannel
+# Expected error: You're not channel operator
+
+! not getting any message when running /invite poika,- #qwe poika,- poika #qwe
+
+# Attempt to change the topic of a channel without appropriate privileges
+/topic #otherchannel New topic for the channel
+# Expected error: You're not channel operator
+
+!need to test
+
+# Attempt to set a channel mode without being an operator
+/mode #channelname +i
+# Expected error: You're not channel operator
+
+!need to test
+
+# Try to give operator privileges without being an operator
+/mode #channelname +o another_user
+# Expected error: You're not channel operator
+
+!need to test
+
+# Try to set a user limit on a channel without being an operator
+/mode #channelname +l 10
+# Expected error: You're not channel operator
+
+!need to test
+
+-Edgecases
+
+-join 

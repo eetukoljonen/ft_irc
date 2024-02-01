@@ -48,9 +48,9 @@
 # define RPL_KICKBROADCAST(kickerNick, kickerUsername, serverName, channel, kicked, reason) \
     (user_id(kickerNick, kickerUsername, serverName) + " KICK #" + channel + " " + kicked + " :" + reason + "\r\n")
 # define ERR_USERNOTONCHANNEL(server, client, nick, channel) \
-    (":" + server + " 441 " + client + " " + nick + " " + channel + " :They aren't on that channel\r\n")
+    (":" + server + " 441 " + client + " " + nick + " #" + channel + " :They aren't on that channel\r\n")
 # define ERR_NOTONCHANNEL(server, client, channel) \
-    (":" + server + " 442 " + client + " " + channel + " :You're not on that channel\r\n")
+    (":" + server + " 442 " + client + " #" + channel + " :You're not on that channel\r\n")
 
 /* KILL */
 
@@ -81,6 +81,11 @@
 
 /* JOIN */
 
+# define RPL_TOPIC(servername, client, channel, topic) (":" + servername + " 332 " + client + " #" + channel + " :" + topic + "\r\n")
+# define RPL_NAMES(servername, channel, userlist, client) (":" + servername + " 353 " + client + " = #" + channel + " :" + userlist + "\r\n")
+# define RPL_ENDOFNAMES(servername, channel, client) (":" + servername + " 366 " + client + " #" + channel + " :End of /NAMES list.\r\n")
+# define RPL_NOTOPIC(servername, client, channel) (":" + servername + " 331 " + client + " #" + channel + " :No topic is set\r\n")
+# define RPL_JOIN(user_id, command, channel) (user_id + " " + command + " #" + channel + "\r\n")
 # define ERR_INVITEONLYCHAN(servername, client, channel) (":" + servername + " 473 " + client + " #" + channel + " :Cannot join channel (+i)\r\n")
 # define ERR_BADCHANNELKEY(servername, client, channel) (":" + servername + " 475 " + client + " #" + channel + " :Cannot join channel (+k)\r\n")
 # define ERR_CHANNELISFULL(servername, client, channel) (":" + servername + " 471 " + client + " #" + channel + " :Cannot join channel (+l)\r\n")
@@ -89,11 +94,6 @@
 # define ERR_TOOMANYCHANNELS(servername, client, channel) (":" + servername + " 405 " + client + " #" + channel + " :You have joined too many channels\r\n")
 # define ERR_TOOMANYTARGETS(servername, client, target) (":" + servername + " 407 " + client + " " + target + " :Too many recipients\r\n")
 # define ERR_UNAVAILRESOURCE(servername, client, target) (":" + servername + " 437 " + client + " " + target + " :Cannot change nickname while services are running\r\n")
-# define RPL_TOPIC(servername, client, channel, topic) (":" + servername + " 332 " + client + " #" + channel + " :" + topic + "\r\n")
-# define RPL_NAMES(servername, channel, userlist, client) (":" + servername + " 353 " + client + " = #" + channel + " :" + userlist + "\r\n")
-# define RPL_ENDOFNAMES(servername, channel, client) (":" + servername + " 366 " + client + " #" + channel + " :End of /NAMES list.\r\n")
-# define RPL_NOTOPIC(servername, client, channel) (":" + servername + " 331 " + client + " #" + channel + " :No topic is set\r\n")
-# define RPL_JOIN(user_id, command, channel) (user_id + " " + command + " #" + channel + "\r\n")
 
 /* PING PONG */
 
