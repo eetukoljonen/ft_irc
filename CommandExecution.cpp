@@ -655,7 +655,7 @@ void	CommandExecution::_invite()
 	/* Check channel name */
 	if (!isValidChannelName(_command.getParams()[1]))
 	{
-		_user->addToSendBuffer(ERR_BADCHANMASK(serverName, userName, channelName));
+		_user->addToSendBuffer(ERR_BADCHANMASK(serverName, userName, _command.getParams()[1]));
 		return ;
 	}
 	/* Check channel exists */
@@ -760,7 +760,7 @@ void CommandExecution::_privmsg()
 			if (channel->UserOnChannel(userNick))
 				channel->broadcastToChannel(RPL_PRIVMSG(userNick, userName, receiver, msg), _user);
 			else 
-				_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
+				_user->addToSendBuffer(ERR_CANNOTSENDTOCHAN(serverName, userName, receiver));
 		} 
 		else
 			_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, receiver));

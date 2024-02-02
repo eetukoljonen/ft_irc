@@ -18,7 +18,8 @@
 # Kick a user from the channel
 /kick #channelname target_username Reason for kick
 
-# Channel Modes
+- Channel Modes
+
 # Set/remove invite-only channel
 /mode #channelname +i
 /mode #channelname -i
@@ -63,11 +64,12 @@
 /msg non_existing_user Your private message
 # Expected error: No such nick/channel
 
-
 # Send a message to a channel you're not part of
 /msg #otherchannel Message to channel
 # Expected error: Cannot send to channel
-// getting No such nick/channel error.
+! getting No such nick/channel error.
+! test now
+
 
 - Operator Commands without having operator privileges
 
@@ -107,4 +109,29 @@
 
 -Edgecases
 
--join 
+
+# Edge Case: Nickname Collision
+# In a separate irssi session or client, attempt to change to the same nickname at the same time
+/nick collisionTest
+# Observe how the server handles the race condition
+
+# Edge Case: Mass Kick
+# As an operator in a channel, attempt to kick multiple users at once
+/kick #testChannel user1 Reason1
+/kick #testChannel user2 Reason2
+# Observe server response and ensure it processes each kick correctly
+
+# Edge Case: Invalid Command Format
+/msg #testChannel
+# Expected error: Need more parameters
+
+# Edge Case: Rejoining After Kick
+/kick #testChannel your_nickname You were kicked!
+/join #testChannel
+# Test if you can rejoin immediately after being kicked, based on channel settings
+
+# Cleanup: Leave channels and disconnect
+/part #testChannel
+/part #testChannel2
+/part #testChannel3
+/quit Goodbye!

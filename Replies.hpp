@@ -77,6 +77,9 @@
 # define RPL_UMODEIS(servername, client, user_modes) (":" + servername + " 221 " + client + " :" + user_modes + "\r\n")
 # define ERR_NORECIPIENT(client) ("411 " + client + " :No recipient given PRIVMSG\r\n")
 # define ERR_NOTEXTTOSEND(client) ("412 " + client + " :No text to send\r\n")
+# define ERR_CANNOTSENDTOCHAN(server, client, channel) \
+    (":" + server + " 404 " + client + " " + channel + " :Cannot send to channel\r\n")
+
 // # define ERR_UMODEUNKNOWNFLAG(servername, client, unknown_mode) (":" + servername + " * 501 " + client + " :Unknown mode flag '" + unknown_mode + "'\r\n")
 
 /* JOIN */
