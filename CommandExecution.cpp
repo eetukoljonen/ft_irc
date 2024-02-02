@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/01 16:06:25 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/02 11:41:29 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,9 +97,7 @@ void CommandExecution::_joinSucces(Channel *channel)
 	channel->addToChannel(_user);
 	channel->broadcastToChannel(RPL_JOIN(user_id(_user->getNick(), _user->getUser(), _user->getIP()), "JOIN", channel->getChannelName()));
 	std::string const &topic = channel->getTopic();
-	if (topic.empty())
-		_user->addToSendBuffer(RPL_NOTOPIC(_server->getName(), _user->getNick(), channel->getChannelName()));
-	else
+	if (!topic.empty())
 		_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), channel->getChannelName(), channel->getTopic()));
 	_user->addToSendBuffer(RPL_NAMES(_server->getName(), channel->getChannelName(), channel->getNickList(),  _user->getNick()));
 	_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), channel->getChannelName(), _user->getNick()));
@@ -110,7 +108,7 @@ void CommandExecution::_joinExistingChannel(Channel *channel, std::string const 
 {
 	if (channel->getChannelMode() & MODE_i && !channel->isInvited(_user->getNick()))
 		_user->addToSendBuffer(ERR_INVITEONLYCHAN(_server->getName(), _user->getNick(), channel->getChannelName()));
-	else if (channel->getUserCount() == channel->getUserLimit())
+	else if (channel->getUserCount() >= channel->getUserLimit())
 		_user->addToSendBuffer(ERR_CHANNELISFULL(_server->getName(), _user->getNick(), channel->getChannelName()));
 	else
 	{
@@ -201,21 +199,21 @@ bool CommandExecution::_isValidNick()
 		_user->addToSendBuffer(ERR_NONICKNAMEGIVEN(_server->getName()));
 		return (false);
 	}
-	std::string const &nick = _command.getParams().at(0);
+	std::string nick = _command.getParams().at(0);
 	size_t nickSize = nick.size();
-	if (nickSize > 9)
-	{
-		_user->addToSendBuffer(ERR_ERRONEUSNICKNAME(_server->getName(), nick));
-		return (false);
-	}
+	// if nickname len more than 15 we shrink it to 15
+	if (nickSize > 15)
+		nick = nick.substr(0, 15);
 	if (!checkIrcPattern(nick))
 	{
 		_user->addToSendBuffer(ERR_ERRONEUSNICKNAME(_server->getName(), nick));
 		return (false);
 	}
-	if (_server->_findUserByNick(nick))
+	User *user = _server->_findUserByNick(nick);
+	if (user)
 	{
-		_user->addToSendBuffer(ERR_NICKNAMEINUSE(_server->getName(), nick));
+		if (user != _user)
+			_user->addToSendBuffer(ERR_NICKNAMEINUSE(_server->getName(), nick));
 		return (false);
 	}
 	return (true);
@@ -225,8 +223,8 @@ void CommandExecution::_nick()
 {
 	if (!_isValidNick())
 		return ;
-	std::string const oldNick = _user->getNick();
-	std::string const newNick = _command.getParams().at(0);
+	std::string const	oldNick = _user->getNick();
+	std::string	const	newNick = _command.getParams().at(0).substr(0, 15);
 	_user->setNick(newNick);
 	if (!_user->isRegistered() && !_user->getUser().empty() && _user->isPassCorrect())
 	{
@@ -339,6 +337,8 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 			{
 				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-l"));
 				channel->removeChannelMode(MODE_l);
+				// todo decide what the max user limit is
+				channel->setUserLimit(100);
 			}
 			break ;
 		case 't':

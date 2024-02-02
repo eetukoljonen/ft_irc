@@ -29,7 +29,7 @@
 # define ERR_PASSWDMISMATCH(server, client) (":" + server + " 464 " + client + " :Password incorrect.\r\n")
 # define ERR_NEEDMOREPARAMS(server, client, command) (":" + server + " 461 " + client + " " + command + " :Not enough parameters.\r\n")
 # define ERR_NONICKNAMEGIVEN(server) (":" + server + " 431 :No nickname given\r\n")
-# define ERR_ERRONEUSNICKNAME(server, nick) (":" + server + " 432 " + nick + " :Erroneous nickname\r\n")
+# define ERR_ERRONEUSNICKNAME(server, nick) (":" + server + " 432 * " + nick + " :Erroneous nickname\r\n")
 # define ERR_NICKNAMEINUSE(server, nick) (":" + server + " 433 * " + nick + " :Nickname is already in use.\r\n")
 # define ERR_NICKCOLLISION(server, nick) (":" + server + " 436 " + nick + " :Nickname collision\r\n")
 # define ERR_RESTRICTED(server, nick) (":" + server + " 484 " + nick + " :Your connection is restricted and cannot use this nickname\r\n")
