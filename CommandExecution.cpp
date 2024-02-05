@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/02 11:41:29 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/05 17:18:16 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,7 +180,7 @@ void CommandExecution::_join()
 				_joinNewChannel(channelName);
 		}
 		else
-			_user->addToSendBuffer(ERR_BADCHANMASK(_server->getName(), _user->getNick(), channelName));
+			_user->addToSendBuffer(ERR_NOSUCHCHANNEL(_server->getName(), _user->getNick(), channelName));
 	}
 }
 
@@ -326,6 +326,8 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 		switch (mode[i])
 		{
 		case 'i':
+			if (!_checkForOpPrivilages(channel))
+				break ;
 			if (channel->getChannelMode() & MODE_i)
 			{
 				channel->removeChannelMode(MODE_i);
@@ -333,15 +335,18 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 			}
 			break ;
 		case 'l':
+			if (!_checkForOpPrivilages(channel))
+				break ;
 			if (channel->getChannelMode() & MODE_l)
 			{
 				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-l"));
 				channel->removeChannelMode(MODE_l);
-				// todo decide what the max user limit is
-				channel->setUserLimit(100);
+				channel->setUserLimit(32);
 			}
 			break ;
 		case 't':
+			if (!_checkForOpPrivilages(channel))
+				break ;
 			if (channel->getChannelMode() & MODE_t)
 			{
 				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-t"));
@@ -349,13 +354,17 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 			}
 			break;
 		case 'k':
+			if (!_checkForOpPrivilages(channel))
+				break ;
 			if (channel->getChannelMode() & MODE_k)
 			{
-				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-k"));
+				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-k " + channel->getChannelkey()));
 				channel->removeChannelMode(MODE_k);
 			}
 			break;
 		case 'o':
+			if (!_checkForOpPrivilages(channel))
+				break ;
 			if (modeParams.size() <= paramIndex)
 				_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE"));
 			else
@@ -382,6 +391,16 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 	}
 }
 
+bool CommandExecution::_checkForOpPrivilages(Channel *channel)
+{
+	if (!channel->isOperator(_user->getNick()))
+	{
+		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(_server->getName(), channel->getChannelName(), _user->getNick()));
+		return (false);
+	}
+	return (true);
+}
+
 void CommandExecution::_addChannelModes(Channel *channel, std::string const &mode, std::string const &channelName, std::vector<std::string> const &modeParams)
 {
 	size_t paramIndex = 0;
@@ -390,6 +409,8 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 		switch (mode[i])
 		{
 		case 'i':
+			if (!_checkForOpPrivilages(channel))
+				break ;
 			if (!(channel->getChannelMode() & MODE_i))
 			{
 				channel->addChannelMode(MODE_i);
@@ -397,6 +418,8 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 			}
 			break ;
 		case 'l':
+			if (!_checkForOpPrivilages(channel))
+				break ;
 			if (modeParams.size() <= paramIndex)
 				_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE +l"));
 			else 
@@ -414,6 +437,8 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 			paramIndex++;
 			break ;
 		case 't':
+			if (!_checkForOpPrivilages(channel))
+				break ;
 			if (!(channel->getChannelMode() & MODE_t))
 			{
 				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+t"));
@@ -421,6 +446,8 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 			}
 			break;
 		case 'k':
+			if (!_checkForOpPrivilages(channel))
+				break ;
 			if (modeParams.size() <= paramIndex)
 				_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE +k"));
 			else if (!(channel->getChannelMode() & MODE_k) || channel->getChannelkey().compare(modeParams[paramIndex]))
@@ -432,6 +459,8 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 			paramIndex++;
 			break;
 		case 'o':
+			if (!_checkForOpPrivilages(channel))
+				break ;
 			if (modeParams.size() <= paramIndex)
 				_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE +o"));
 			else
@@ -470,11 +499,6 @@ void CommandExecution::_channelMode()
 	if (paramSize == 1)
 	{
 		_user->addToSendBuffer(RPL_CHANNELMODIS(_server->getName(), _user->getNick(), channelName, channel->getChannelModeString()));
-		return ;
-	}
-	if (!channel->isOperator(_user->getNick()))
-	{
-		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(_server->getName(), channelName, _user->getNick()));
 		return ;
 	}
 	std::string const &mode = cmdParams[1];
@@ -761,7 +785,7 @@ void CommandExecution::_privmsg()
 				channel->broadcastToChannel(RPL_PRIVMSG(userNick, userName, receiver, msg), _user);
 			else 
 				_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
-		} 
+		}
 		else
 			_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, receiver));
 	} 
@@ -785,7 +809,9 @@ void CommandExecution::_quit()
 	{
 		std::vector<Channel *>::iterator	it				= _usersChannels.begin();
 		std::vector<Channel *>::iterator	ite				= _usersChannels.end();
-		std::string const					&msg			= _command.getParams().at(0);
+		std::string msg = ":leaving";
+		if (!_command.getParams().empty())
+			msg	= _command.getParams().at(0);
 		std::string const					&nick			= _user->getNick();
 		std::string const					&user			= _user->getUser();
 		std::string const					&userIP			= _user->getIP();

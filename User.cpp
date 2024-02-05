@@ -231,3 +231,8 @@ void User::addNewChannel(Channel *channel)
 {
 	_channels.push_back(channel);
 }
+
+void User::setClientInfo(t_client const &info)
+{
+	_userInfo = info;
+}

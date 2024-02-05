@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/31 16:21:00 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/05 15:14:13 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ public:
 	std::string const			&getPongResponse() const;
 	std::vector<Channel *>		getChannels() const;
 	void						addNewChannel(Channel *channel);
+	void						setClientInfo(t_client const &info);
 private:
 	std::string					_nick;
 	std::string					_user;

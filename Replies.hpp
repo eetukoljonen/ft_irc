@@ -90,7 +90,7 @@
 # define ERR_BADCHANNELKEY(servername, client, channel) (":" + servername + " 475 " + client + " #" + channel + " :Cannot join channel (+k)\r\n")
 # define ERR_CHANNELISFULL(servername, client, channel) (":" + servername + " 471 " + client + " #" + channel + " :Cannot join channel (+l)\r\n")
 # define ERR_BADCHANMASK(servername, client, channel) (":" + servername + " 476 " + client + " " + channel + " :Bad Channel Mask\r\n")
-# define ERR_NOSUCHCHANNEL(servername, client, channel) (":" + servername + " 403 " + client + " #" + channel + " :No such channel\r\n")
+# define ERR_NOSUCHCHANNEL(servername, client, channel) (":" + servername + " 403 " + client + " " + channel + " :No such channel\r\n")
 # define ERR_TOOMANYCHANNELS(servername, client, channel) (":" + servername + " 405 " + client + " #" + channel + " :You have joined too many channels\r\n")
 # define ERR_TOOMANYTARGETS(servername, client, target) (":" + servername + " 407 " + client + " " + target + " :Too many recipients\r\n")
 # define ERR_UNAVAILRESOURCE(servername, client, target) (":" + servername + " 437 " + client + " " + target + " :Cannot change nickname while services are running\r\n")

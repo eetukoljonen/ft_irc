@@ -6,13 +6,13 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/01 15:40:20 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/05 15:50:23 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 
-Channel::Channel() : _userLimit(100), _modes(0) {}
+Channel::Channel() : _userLimit(32), _modes(0) {}
 
 Channel::Channel(Channel const &cpy)
 {
@@ -163,18 +163,24 @@ std::map<std::string, User *>	&Channel::getUsersMap()
 void Channel::broadcastToChannel(std::string const &msg, User *ignoredUser) 
 {
 	std::map<std::string, User *>::iterator it;
-    for(it = _users.begin(); it != _users.end(); ++it)
+	if (!_users.empty())
 	{
-		if (it->second != ignoredUser)
-       		it->second->addToSendBuffer(msg);
+		for(it = _users.begin(); it != _users.end(); ++it)
+		{
+			if (it->second != ignoredUser)
+				it->second->addToSendBuffer(msg);
+		}
 	}
 }
 
 void Channel::broadcastToChannel(std::string const &msg) 
 {
 	std::map<std::string, User *>::iterator it;
-    for(it = _users.begin(); it != _users.end(); ++it)
-       	it->second->addToSendBuffer(msg);
+	if (!_users.empty())
+	{
+		for(it = _users.begin(); it != _users.end(); ++it)
+       		it->second->addToSendBuffer(msg);
+	}
 }
 
 void	Channel::removeFromChannel(std::string const &nick)

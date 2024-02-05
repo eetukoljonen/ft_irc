@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/01/31 15:50:34 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/05 16:58:56 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,9 @@ static void	signal_handler(int signal)
 
 void Server::_receiveMessage(int index)
 {
-	char buf[512];
-	memset(buf, '\0', 512);
-	int nbytes = recv(_pollfds[index].fd, buf, 512, MSG_DONTWAIT);
+	char buf[510];
+	memset(buf, '\0', 510);
+	int nbytes = recv(_pollfds[index].fd, buf, 510, MSG_DONTWAIT);
 	if (nbytes == 0)
 	{
 		std::cout << _pollfds[index].fd << " disconnected" << std::endl;
@@ -40,28 +40,27 @@ void Server::_receiveMessage(int index)
 	{
 		std::cout << ">>" << std::string(buf, 0, nbytes) << std::endl;
 		//std::cout << "fd = " << _usersMap.find(_pollfds[index].fd)->second->getUserInfo().fd << std::endl;
-		_usersMap.find(_pollfds[index].fd)->second->addToInputBuffer(std::string(buf, 0, nbytes));
+		_usersMap.find(_pollfds[index].fd)->second->addToInputBuffer(std::string(buf, 0, nbytes) + "\r\n");
 	}
 }
 
 void Server::_acceptClient()
 {
-	User *newUser = new User;
-	newUser->getUserInfo().fd = accept(_listeningSocket,
-									(struct sockaddr *)&newUser->getUserInfo().addr,
-									&newUser->getUserInfo().addrLen);
-	fcntl(newUser->getUserInfo().fd, F_SETFL, O_NONBLOCK);
-	if (newUser->getUserInfo().fd == -1)
-	{
-		delete newUser;
+	t_client client_info;
+	client_info.fd = accept(_listeningSocket,
+							(struct sockaddr *)&client_info.addr,
+							&client_info.addrLen);
+	fcntl(client_info.fd, F_SETFL, O_NONBLOCK);
+	if (client_info.fd == -1)
 		perror("accept");
-	}
-	else if (newUser->getUserInfo().fd)
+	else if (client_info.fd)
 	{
-		_addPollFd(newUser->getUserInfo().fd);
+		User *newUser = new User;
+		newUser->setClientInfo(client_info);
+		_addPollFd(client_info.fd);
 		std::cout << "new connection: " << std::string(inet_ntoa(newUser->getUserInfo().addr.sin_addr), 0, INET_ADDRSTRLEN + 1) << std::endl;
-		_usersMap[newUser->getUserInfo().fd] = newUser;
-		newUser->setIP(inet_ntoa(newUser->getUserInfo().addr.sin_addr));
+		_usersMap[client_info.fd] = newUser;
+		newUser->setIP(inet_ntoa(client_info.addr.sin_addr));
 	}
 }
 

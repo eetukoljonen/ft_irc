@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:01 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/01 13:49:16 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/05 17:13:08 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,7 @@ private:
 	static void		_channelMode();
 	static void		_removeChannelModes(Channel *channel, std::string const &mode, std::string const &channelName, std::vector<std::string> const &modeParams);
 	static void		_addChannelModes(Channel *channel, std::string const &mode, std::string const &channelName, std::vector<std::string> const &modeParams);
+	static bool		_checkForOpPrivilages(Channel *channel);
 	// ping pong
 	static void		_ping();
 	static void		_pong();
