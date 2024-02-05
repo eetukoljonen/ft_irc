@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/01 16:06:25 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/05 16:52:51 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -737,8 +737,6 @@ void CommandExecution::_privmsg()
         _user->addToSendBuffer(ERR_NEEDMOREPARAMS(serverName, userNick, command));
         return;
     }
-
-	std::string const &receiver = _command.getParams()[0];
 	std::string const &msg = _command.getParams()[1];
 	if (msg.find(":") == std::string::npos)
 	{
@@ -747,35 +745,36 @@ void CommandExecution::_privmsg()
 	
 	// std::cout << "receiver is " << receiver << std::endl;
 	// std::cout << "privmsg is " << msg << std::endl;
-
-	Channel* channel = _server->getChannelByName(&receiver[1]);
-	//todo add bad channel mask check
 	
-	if (!receiver.empty() && receiver[0] == '#')
+	std::vector<std::string> receivers = split(_command.getParams()[0], ',');
+	for (const std::string& receiver : receivers)
 	{
-		// The receiver is a channel
-		if (channel) 
+		if (!receivers.empty() && receiver[0] == '#')
 		{
-			// std::cout << "hello there\n";
-			if (channel->UserOnChannel(userNick))
-				channel->broadcastToChannel(RPL_PRIVMSG(userNick, userName, receiver, msg), _user);
-			else 
-				_user->addToSendBuffer(ERR_CANNOTSENDTOCHAN(serverName, userName, receiver));
-		} 
+			Channel* channel = _server->getChannelByName(&receiver[1]);
+			// The receiver is a channel
+			if (channel) 
+			{
+				if (channel->UserOnChannel(userNick))
+					channel->broadcastToChannel(RPL_PRIVMSG(userNick, userName, receiver, msg), _user);
+				else 
+					_user->addToSendBuffer(ERR_CANNOTSENDTOCHAN(serverName, userName, receiver));
+			} 
+			else
+				_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, receiver));
+		}
 		else
-			_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, receiver));
-	} 
-	else 
-	{
-		// The receiver is a user
-		User* recipient = _server->_findUserByNick(receiver);
-		// std::cout << "user is " << recipient->getNick() << std::endl;
+		{
+			// The receiver is a user
+			User* recipient = _server->_findUserByNick(receiver);
+			// std::cout << "user is " << recipient->getNick() << std::endl;
 
-		if (recipient)
-			recipient->addToSendBuffer(RPL_PRIVMSG(userNick, userName, receiver, msg));
-		else
-			_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
-	}	
+			if (recipient)
+				recipient->addToSendBuffer(RPL_PRIVMSG(userNick, userName, receiver, msg));
+			else
+				_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
+		}	
+	}
 }
 
 void CommandExecution::_quit()

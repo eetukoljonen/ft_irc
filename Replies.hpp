@@ -79,7 +79,7 @@
 # define ERR_NOTEXTTOSEND(client) ("412 " + client + " :No text to send\r\n")
 # define ERR_CANNOTSENDTOCHAN(server, client, channel) \
     (":" + server + " 404 " + client + " " + channel + " :Cannot send to channel\r\n")
-
+# define ERR_NOTOPLEVEL(servername, mask)(":" + servername + " 413 " + mask + " :No toplevel domain specified" + "\r\n") 
 // # define ERR_UMODEUNKNOWNFLAG(servername, client, unknown_mode) (":" + servername + " * 501 " + client + " :Unknown mode flag '" + unknown_mode + "'\r\n")
 
 /* JOIN */

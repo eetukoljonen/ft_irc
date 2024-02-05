@@ -67,9 +67,6 @@
 # Send a message to a channel you're not part of
 /msg #otherchannel Message to channel
 # Expected error: Cannot send to channel
-! getting No such nick/channel error.
-! test now
-
 
 - Operator Commands without having operator privileges
 
@@ -80,8 +77,6 @@
 # Invite a user to a channel you're not an operator of
 /invite some_user #otherchannel
 # Expected error: You're not channel operator
-
-! not getting any message when running /invite poika,- #qwe poika,- poika #qwe
 
 # Attempt to change the topic of a channel without appropriate privileges
 /topic #otherchannel New topic for the channel
@@ -125,13 +120,8 @@
 /msg #testChannel
 # Expected error: Need more parameters
 
-# Edge Case: Rejoining After Kick
-/kick #testChannel your_nickname You were kicked!
-/join #testChannel
-# Test if you can rejoin immediately after being kicked, based on channel settings
-
 # Cleanup: Leave channels and disconnect
-/part #testChannel
+<!-- /part #testChannel
 /part #testChannel2
-/part #testChannel3
+/part #testChannel3 -->
 /quit Goodbye!

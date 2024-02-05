@@ -1,0 +1,22 @@
+<< CAP LS 302
+<< JOIN :
+>> :Garbaggio 451 :Register first.
+<< PASS asd
+<< NICK atuliara
+<< USER atuliara atuliara localhost :Axel Tuliara
+>> :Garbaggio 433 * atuliara :Nickname is already in use.
+<< NICK atuliara_
+>> :Garbaggio 001 atuliara_ :Welcome to the Internet Relay Network :atuliara_!atuliara@127.0.0.1
+<< MODE atuliara_ +i
+>> :atuliara_!atuliara@127.0.0.1 MODE atuliara_ :+i
+<< WHOIS atuliara
+<< PING Garbaggio
+>> :Garbaggio PONG Garbaggio :Garbaggio
+--> lag pong
+>> :atuliara1!atuliara@127.0.0.1 PRIVMSG atuliara_ :hi
+>> :Garbaggio PING :2
+<< PONG :2
+<< PING Garbaggio
+>> :Garbaggio PONG Garbaggio :Garbaggio
+--> FAILED whois
+--> lag pong
