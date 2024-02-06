@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/06 13:42:40 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/06 16:32:13 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,8 @@ public:
 	std::string const			extractFromSendBuffer();
 	std::string const			&getPongResponse() const;
 	//setters
-	int							addToInputBuffer(std::string input);
+	void						addToInputBuffer(std::string input);
+	void						addToInputBufferFront(std::string const &input);
 	void						addToSendBuffer(std::string const &msg);
 	void						setNick(std::string const &nick);
 	void						setUser(std::string const &user);
@@ -74,6 +75,7 @@ public:
 	void						setPongResponse(std::string const &msg);
 	void						addNewChannel(Channel *channel);
 	void						setClientInfo(t_client const &info);
+	void						removeChannel(Channel *channel);
 private:
 	std::string					_nick;
 	std::string					_user;
