@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/06 14:34:49 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/06 16:39:07 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -220,6 +220,7 @@ void CommandExecution::_nick()
 	{
 		_user->setRegistrationFlag(true);
 		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
+		_motd();
 	}
 	else if (_user->isRegistered())
 	{
@@ -250,21 +251,36 @@ static std::string readFileIntoString(const std::string& path)
         buffer << fileStream.rdbuf();	
     return buffer.str();
 }
-
 void CommandExecution::_motd()
 {
-	std::string serverName = _server->getName();
-	std::string userName = _user->getUser();
-	std::string reply = RPL_MOTDSTART(serverName, userName);
-	std::string motd = readFileIntoString("motd.txt");
-	if (!motd.empty())
+    std::string serverName = _server->getName();
+    std::string userName = _user->getUser();
+    std::string replyStart = RPL_MOTDSTART(serverName, userName);
+    _user->addToSendBuffer(replyStart);
+    std::string motd = readFileIntoString("motd.txt");
+    std::istringstream motdStream(motd);
+    std::string line;
+
+    while (std::getline(motdStream, line)) 
 	{
-		reply.append(RPL_MOTD(serverName, userName, motd)).append(RPL_ENDOFMOTD(serverName, userName));
-		_user->addToSendBuffer(reply);
-	}
-	else
-		_user->addToSendBuffer(ERR_NOMOTD(serverName, userName));
+        if (!line.empty() && line.length() < 80) 
+		{
+            std::string replyLine = RPL_MOTD(serverName, userName, line);
+            _user->addToSendBuffer(replyLine);
+        }
+    }
+    if (!motd.empty()) 
+	{
+        std::string replyEnd = RPL_ENDOFMOTD(serverName, userName);
+        _user->addToSendBuffer(replyEnd);
+    }
+	else 
+	{
+        std::string replyNoMotd = ERR_NOMOTD(serverName, userName);
+        _user->addToSendBuffer(replyNoMotd);
+    }
 }
+
 
 
 void CommandExecution::_userF()
@@ -299,7 +315,7 @@ void CommandExecution::_userF()
 		_user->setRegistrationFlag(true);
 		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
 		_motd();
-	}
+	}	
 }
 
 void CommandExecution::_userMode()
@@ -555,6 +571,7 @@ void CommandExecution::_pass()
 	{
 		_user->setRegistrationFlag(true);
 		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
+		_motd();
 	}
 }
 
@@ -582,8 +599,7 @@ void    CommandExecution::_kill()
 			}
 			std::string msg = RPL_KILL(_server->getName(), target->getNick(), reason);
 			if (send(target->getUserInfo().fd, msg.c_str(), msg.size(), 0) < 0)
-				std::cout << "failed to send msg to" << target->getNick() \
-				<< ". Error: " << strerror(errno) << std::endl;
+				std::cout << "failed to send msg to" << target->getNick() << std::endl;
 			_server->deleteUser(target->getUserInfo().fd);
 		}
 	}
@@ -649,6 +665,8 @@ void	CommandExecution::_kick()
    	// 	std::cerr << "Error sending message: " << strerror(errno) << std::endl;
 	channel->broadcastToChannel(RPL_KICKBROADCAST(user_id(kickerNick, userName, _user->getIP()), channelName, targetUser, reason));
 	channel->removeFromChannel(targetUser);
+	
+	//CHECK IF LAST AND DELETE CHANNEL 
 }
 
 void	CommandExecution::_invite()
@@ -703,7 +721,7 @@ void	CommandExecution::_invite()
 		_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, targetNick));
 		return ;
 	}
-	std::string const &inviteMsg = RPL_INVITE(inviterNick, userName, serverName, targetNick, channelName);
+	std::string const &inviteMsg = RPL_INVITE(inviterNick, userName, _user->getIP(), targetNick, channelName);
 	target->addToSendBuffer(inviteMsg);
 	channel->addToInviteList(targetNick);
 }
@@ -738,8 +756,6 @@ void CommandExecution::_ping()
 	_user->addToSendBuffer(PONG(_server->getName(), msg));
 }
 
-// PRIVMSG <receiver> :<message>
-
 void CommandExecution::_privmsg()
 {
 	std::string const &serverName = _server->getName();
@@ -762,33 +778,31 @@ void CommandExecution::_privmsg()
 	// std::cout << "privmsg is " << msg << std::endl;
 	
 	std::vector<std::string> receivers = split(_command.getParams()[0], ',');
-	for (const std::string& receiver : receivers)
+	for (const std::string &receiver : receivers)
 	{
 		if (!receivers.empty() && receiver[0] == '#')
 		{
 			Channel* channel = _server->getChannelByName(&receiver[1]);
-		// The receiver is a channel
-		if (channel) 
-		{
-			// std::cout << "hello there\n";
-			if (channel->UserOnChannel(userNick))
-				channel->broadcastToChannel(RPL_PRIVMSG(userNick, userName, receiver, msg), _user);
-			else 
-				_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
+			// The receiver is a channel
+			if (channel) 
+			{
+				if (channel->UserOnChannel(userNick))
+					channel->broadcastToChannel(RPL_PRIVMSG(user_id(userNick, userName, _user->getIP()), receiver, msg), _user);
+				else 
+					_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userNick, userNick));
+			} 
+			else
+				_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, receiver));
 		} 
 		else
-			_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, receiver));
-	} 
-	else 
-	{
-		// The receiver is a user
-		User* recipient = _server->_findUserByNick(receiver);
-		// std::cout << "user is " << recipient->getNick() << std::endl;
-
+		{
+			// The receiver is a user
+			User* recipient = _server->_findUserByNick(receiver);
+			// std::cout << "user is " << recipient->getNick() << std::endl;
 			if (recipient)
-				recipient->addToSendBuffer(RPL_PRIVMSG(userNick, userName, receiver, msg));
+				recipient->addToSendBuffer(RPL_PRIVMSG(user_id(userNick, userName, _user->getIP()), receiver, msg));
 			else
-				_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
+				_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userNick, receiver));
 		}	
 	}
 }

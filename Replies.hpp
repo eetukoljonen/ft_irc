@@ -41,7 +41,6 @@
 # define ERR_RESTRICTED(server, nick) (":" + server + " 484 " + nick + " :Your connection is restricted and cannot use this nickname\r\n")
 # define ERR_NOTREGISTERED(servername)(":" + servername + " 451 :Register first.\r\n")
 # define ERR_ALREADYREGISTERED(servername) (":" + servername + " 462 :Unauthorized command (already registered)\r\n")
-# define ERR_NOSUCHNICK(servername, client, nickname) (":" + servername + " 401 " + client + " " + nickname + " :No such nick/channel.\r\n")
 // # define ERR_UMODEUNKNOWNFLAG(servername, client, unknown_mode) (":" + servername + " * 501 " + client + " :Unknown mode flag '" + unknown_mode + "'\r\n")
 
 /* KICK */
@@ -62,22 +61,19 @@
 
 /* INVITE */
 
-// Reply when the invitation is successful
 # define RPL_INVITING(server, inviterNick, invitedNick, channel) \
     (":" + server + " 341 " + inviterNick + " " + invitedNick + " " + channel + "\r\n")
 # define RPL_INVITE(inviterNick, inviterUser, inviterHost, targetNick, channel) \
     (":" + inviterNick + "!" + inviterUser + "@" + inviterHost + " INVITE " + targetNick + " :" + channel + "\r\n")
-// Reply when the invited user is away
 # define RPL_AWAY(server, inviterNick, invitedNick, awayMessage) \
     (":" + server + " 301 " + inviterNick + " " + invitedNick + " :" + awayMessage + "\r\n")
-// Error when the invited user is already on the channel
 # define ERR_USERONCHANNEL(server, inviterNick, invitedNick, channel) \
     (":" + server + " 443 " + inviterNick + " " + invitedNick + " " + channel + " :is already on channel\r\n")
 
 /* PRIVMSG */
 
-# define RPL_PRIVMSG(nick, username, target, message) \
-				(":" + nick + "!" + username + "@127.0.0.1 PRIVMSG " + target + " " + message + "\r\n")
+# define RPL_PRIVMSG(user_id, target, message) \
+				(user_id + " PRIVMSG " + target + " " + message + "\r\n")
 # define RPL_UMODEIS(servername, client, user_modes) (":" + servername + " 221 " + client + " :" + user_modes + "\r\n")
 # define ERR_NORECIPIENT(client) ("411 " + client + " :No recipient given PRIVMSG\r\n")
 # define ERR_NOTEXTTOSEND(client) ("412 " + client + " :No text to send\r\n")
@@ -113,7 +109,7 @@
 
 # define USERMODE(user_id, client, mode) (user_id + " MODE " + client + " :" + mode + "\r\n")
 # define CHANNELMODE(user_id, channel, mode) (user_id + " MODE #" + channel + " " + mode + "\r\n")
-# define RPL_CHANNELMODIS(servername, client, channel, channelmodes) (":" + servername + " 324 " + client + " #" + channel + " " + channelmodes + "\r\n")
+# define RPL_CHANNELMODIS(servername, client, channel, channelmodes) (":" + servername + " 324 " + client + " " + channel + " " + channelmodes + "\r\n")
 # define ERR_USERSDONTMATCH(servername) (":" + servername + " 502 :Cannot change mode for other users\r\n")
 # define ERR_UMODEUNKNOWNFLAG(servername) (":" + servername + " 501 :Unknown MODE flag\r\n")
 # define ERR_UNKNOWNMODE(servername, mode, channel) (":" + servername + " 472 " + mode + " :is unknown mode char to me for " + channel + "\r\n")
