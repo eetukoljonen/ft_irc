@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/06 14:24:04 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/06 14:34:49 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,13 +241,29 @@ void CommandExecution::_nick()
 	}
 }
 
+static std::string readFileIntoString(const std::string& path) 
+{
+    std::ifstream fileStream(path);
+    std::stringstream buffer;
+
+    if (fileStream)
+        buffer << fileStream.rdbuf();	
+    return buffer.str();
+}
+
 void CommandExecution::_motd()
 {
-	std::ifstream		data;
-
-	data.open("motd"); // error handling
-	std::cout << "data opened" << std::endl;
-	data.close();
+	std::string serverName = _server->getName();
+	std::string userName = _user->getUser();
+	std::string reply = RPL_MOTDSTART(serverName, userName);
+	std::string motd = readFileIntoString("motd.txt");
+	if (!motd.empty())
+	{
+		reply.append(RPL_MOTD(serverName, userName, motd)).append(RPL_ENDOFMOTD(serverName, userName));
+		_user->addToSendBuffer(reply);
+	}
+	else
+		_user->addToSendBuffer(ERR_NOMOTD(serverName, userName));
 }
 
 
@@ -282,6 +298,7 @@ void CommandExecution::_userF()
 	{
 		_user->setRegistrationFlag(true);
 		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
+		_motd();
 	}
 }
 
@@ -525,13 +542,12 @@ void CommandExecution::_pass()
 	if (_command.getParams().empty())
 	{
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "PASS"));
-		//kill
+		return  ;
 	}
 	else if (!_command.getParams().empty() && 
-	_command.getParams()[0].compare(_server->getPass())) // if pw does not match
+	_command.getParams()[0].compare(_server->getPass()))
 	{
 		_user->addToSendBuffer(ERR_PASSWDMISMATCH(_server->getName(), _user->getNick()));
-		//kill connection
 		return ;
 	}
 	_user->setPassFlag(true);
@@ -541,18 +557,6 @@ void CommandExecution::_pass()
 		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
 	}
 }
-
-/*
-Usage: An operator sends a KILL command followed by the nickname of the user to be disconnected and a reason for the disconnection.
-
-Example: KILL target_nickname :Reason for kill
-Server Action: Upon receiving a KILL command, the server will:
-Validate that the sender has the necessary permissions to issue a KILL command.
-Locate the user specified by the target_nickname.
-Disconnect the targeted user from the server.
-Optionally, propagate the KILL command to other servers if the IRC network is composed of multiple servers.
-Client Notification: The targeted user's client is typically notified of the disconnection and the reason provided.
-*/
 
 void    CommandExecution::_kill()
 {
@@ -600,7 +604,7 @@ void	CommandExecution::_kick()
 	}
 	
 	//channel name without the hashtag -> added it back in the replies.hpp
-	std::string const &channelName = &_command.getParams()[0][1]; 
+	std::string const &channelName = &_command.getParams()[0][1];
 	std::string const &targetUser = _command.getParams()[1];
 	Channel *channel = _server->getChannelByName(channelName);
 	// User *target = channel->getUser(targetUser);
@@ -666,7 +670,7 @@ void	CommandExecution::_invite()
 	/* Check channel name */
 	if (!isValidChannelName(_command.getParams()[1]))
 	{
-		_user->addToSendBuffer(ERR_BADCHANMASK(serverName, userName, channelName));
+		_user->addToSendBuffer(ERR_BADCHANMASK(serverName, userName, _command.getParams()[1]));
 		return ;
 	}
 	/* Check channel exists */
@@ -748,8 +752,6 @@ void CommandExecution::_privmsg()
         _user->addToSendBuffer(ERR_NEEDMOREPARAMS(serverName, userNick, command));
         return;
     }
-
-	std::string const &receiver = _command.getParams()[0];
 	std::string const &msg = _command.getParams()[1];
 	if (msg.find(":") == std::string::npos)
 	{
@@ -758,12 +760,13 @@ void CommandExecution::_privmsg()
 	
 	// std::cout << "receiver is " << receiver << std::endl;
 	// std::cout << "privmsg is " << msg << std::endl;
-
-	Channel* channel = _server->getChannelByName(&receiver[1]);
-	//todo add bad channel mask check
 	
-	if (!receiver.empty() && receiver[0] == '#')
+	std::vector<std::string> receivers = split(_command.getParams()[0], ',');
+	for (const std::string& receiver : receivers)
 	{
+		if (!receivers.empty() && receiver[0] == '#')
+		{
+			Channel* channel = _server->getChannelByName(&receiver[1]);
 		// The receiver is a channel
 		if (channel) 
 		{
@@ -772,7 +775,7 @@ void CommandExecution::_privmsg()
 				channel->broadcastToChannel(RPL_PRIVMSG(userNick, userName, receiver, msg), _user);
 			else 
 				_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
-		}
+		} 
 		else
 			_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, receiver));
 	} 
@@ -782,11 +785,12 @@ void CommandExecution::_privmsg()
 		User* recipient = _server->_findUserByNick(receiver);
 		// std::cout << "user is " << recipient->getNick() << std::endl;
 
-		if (recipient)
-			recipient->addToSendBuffer(RPL_PRIVMSG(userNick, userName, receiver, msg));
-		else
-			_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
-	}	
+			if (recipient)
+				recipient->addToSendBuffer(RPL_PRIVMSG(userNick, userName, receiver, msg));
+			else
+				_user->addToSendBuffer(ERR_NOSUCHNICK(serverName, userName, userNick));
+		}	
+	}
 }
 
 void CommandExecution::_quit()

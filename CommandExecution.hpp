@@ -73,7 +73,7 @@ private:
 	static void		_quit();
 	//topic
 	static void		_topic();
-};
+	};
 
 
 #endif
