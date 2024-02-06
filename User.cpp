@@ -50,8 +50,6 @@ void User::addToSendBuffer(std::string const &msg)
 	_sendBuffer.push_back(msg);
 }
 
-
-
 // t_command *User::extractCommand()
 // {
 // 	std::cout << "hi" << std::endl;
@@ -102,7 +100,12 @@ void appendInput(std::vector<std::string> &buf, std::string const &str)
 		buf.push_back(str);
 }
 
-int User::addToInputBuffer(std::string msg)
+void User::addToInputBufferFront(std::string const &input)
+{
+	_userInput.insert(_userInput.begin(), input);
+}
+
+void User::addToInputBuffer(std::string msg)
 {
 	std::string cmd(msg);
 	while (msg.find("\n") != std::string::npos)
@@ -118,7 +121,6 @@ int User::addToInputBuffer(std::string msg)
 			msg += "\n";
 		appendInput(_userInput, msg);
 	}
-	return (0);
 }
 
 std::string const User::extractInput()
@@ -235,4 +237,11 @@ void User::addNewChannel(Channel *channel)
 void User::setClientInfo(t_client const &info)
 {
 	_userInfo = info;
+}
+
+void User::removeChannel(Channel *channel)
+{
+	std::vector<Channel *>::iterator it = std::find(_channels.begin(), _channels.end(), channel);
+	if (it != _channels.end())
+		_channels.erase(it);
 }

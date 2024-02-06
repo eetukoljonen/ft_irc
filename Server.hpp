@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 13:34:20 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/06 13:36:17 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/06 15:42:52 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@ public:
 	~Server();
 	// Server(int port, std::string pw, std::string name = "Garbaggio");
 	void									startServer(std::string const &port, std::string const &pw);
-	void 									deleteUser(int fd);
 	// getters
 	std::string const						&getName() const;
 	std::string const						&getPass() const;
@@ -55,6 +54,8 @@ public:
 	// setters
 	void									addNewChannel(Channel *channel);
 	Channel									*createChannel(std::string const &name);
+	void 									deleteUser(int fd);
+	void									deleteChannel(Channel *channel);
 private:
 	std::string const						_name;
 	std::string								_host;

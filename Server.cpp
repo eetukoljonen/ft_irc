@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/06 14:35:49 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/06 17:07:39 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,12 +167,42 @@ void Server::_runServer()
 				// std::string msg = currentUser->extractFromSendBuffer();
 				// std::cout << "msg to client: " << msg << std::endl;
 				if (!msg.empty())
-					send(_pollfds[i].fd, msg.c_str(), msg.size(), 0);
+				{
+					int bytes = send(_pollfds[i].fd, msg.c_str(), msg.size(), 0);
+					if (bytes == -1)
+					{
+						//todo exit the server sys call error
+					}
+					if (static_cast<size_t>(bytes) < msg.size())
+					{
+						msg.substr(bytes);
+						currentUser->addToInputBufferFront(msg);
+					}
+				}
 			}
 		}
 		else if (_pollfds[i].revents & (POLLNVAL | POLLERR | POLLHUP))
 		{
-			std::cout << "POLLERR STUFF" << std::endl;
+			if (_pollfds[i].revents & POLLERR)
+				std::cout << "POLLERR" << std::endl;
+			else if (_pollfds[i].revents & POLLNVAL)
+				std::cout << "POLLNVAL" << std::endl;
+			else if (_pollfds[i].revents & POLLHUP)
+				std::cout << "POLLHUP" << std::endl;
+			std::vector<Channel *> userChannels = currentUser->getChannels();
+			if (!userChannels.empty())
+			{
+				std::vector<Channel *>::iterator it = userChannels.begin();
+				std::vector<Channel *>::iterator ite = userChannels.end();
+				while (it != ite)
+				{
+					Channel *channel = *it;
+					channel->removeFromChannel(currentUser->getNick());
+					channel->broadcastToChannel(QUIT(user_id(currentUser->getNick(), currentUser->getUser(), currentUser->getIP()), ":connection lost"));
+					it++;
+				}
+			}
+			deleteUser(_pollfds[i].fd);
 		}
 		// checking if ping interval timer has gone over 60 secs
 		time_t currentTime = time(0);
@@ -327,7 +357,11 @@ void Server::deleteUser(int fd)
 		std::cout << "found user " << it_map->second->getNick() << std::endl;
 		close(fd);
 		if (it_map != _usersMap.end())
+		{
+			if (it_map->second)
+				delete it_map->second;
 			_usersMap.erase(it_map);
+		}
 		if (it_poll != _pollfds.end())
 			_pollfds.erase(it_poll);
 	}
@@ -400,4 +434,15 @@ void Server::_pingUsers()
 		it++;
 	}
 	_sendPingToUsers();
+}
+
+void Server::deleteChannel(Channel *channel)
+{
+	std::map<std::string, Channel *>::iterator it = _channelMap.find(channel->getChannelName());
+	if (it != _channelMap.end())
+	{
+		if (it->second)
+			delete it->second;
+		_channelMap.erase(it);
+	}
 }

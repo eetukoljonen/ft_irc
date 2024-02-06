@@ -123,3 +123,7 @@
 # define QUIT(user_id, msg) (user_id + " QUIT " + msg + "\r\n")
 
 # define ERR_UNKNOWNCOMMAND(servername, client, command) (":" + servername + " 421 " + client + " " + command + " :Unknown command\r\n")
+
+//part
+
+# define PART(user_id, channel, reason) (user_id + " PART #" + channel + " " + reason + "\r\n")
