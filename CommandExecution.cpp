@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/05 17:18:16 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/06 14:24:04 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,17 +25,9 @@ CommandExecution::~CommandExecution(){}
 
 CommandExecution &CommandExecution::operator=(CommandExecution const &rhs)
 {
-    if (this != &rhs)
-    {
-    }
-    return (*this);
+    (void)rhs;
+	return (*this);
 }
-
-// void CommandExecution::_cap()
-// {
-// 	std::cout << "adding to send buffer" << std::endl;
-// 	_user->addToSendBuffer("CAP * LS :\r\n");
-// }}
 
 void CommandExecution::execute(User	*user, Server *server, Command &command)
 {
@@ -62,15 +54,13 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
     };
     
     int i = 0;
-	std::string _command = command.getCommand();
-	std::cout << "commnad = " << _command << std::endl;
+	std::string commandStr = command.getCommand();
     while (i < 15)
     {
-        if (!_command.compare(Cmds[i]))
+        if (!commandStr.compare(Cmds[i]))
             break;
         i++;
     }
-	std::cout << "i = " << i << std::endl;
 	switch (i)
 	{
         case 0: _join(); break;
@@ -88,7 +78,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 12: _privmsg(); break;
 		case 13: _quit(); break;
 		case 14: _topic(); break;
-		default: /*TODO send the user ERR_UNKNOWNCOMMAND*/ break;
+		default: _user->addToSendBuffer(ERR_UNKNOWNCOMMAND(_server->getName(), _user->getNick(), _command.getCommand())); break;
 	}
 }
 
@@ -489,9 +479,9 @@ void CommandExecution::_channelMode()
 {
 	std::vector<std::string> const &cmdParams = _command.getParams();
 	size_t const &paramSize = cmdParams.size();
-	std::string const channelName = &cmdParams[0][1];
-	Channel *channel = _server->getChannelByName(channelName);
-	if (channel == nullptr)
+	std::string const channelName = cmdParams[0];
+	Channel *channel = _server->getChannelByName(&channelName[1]);
+	if (!isValidChannelName(channelName) || !channel)
 	{
 		_user->addToSendBuffer(ERR_NOSUCHCHANNEL(_server->getName(), _user->getNick(), channelName));
 		return ;
@@ -521,8 +511,6 @@ void CommandExecution::_mode()
 	}
 	if (cmdParams.at(0)[0] != '#' && cmdParams.at(0)[0] != '&' && cmdParams.at(0)[0] != '!' && cmdParams.at(0)[0] != '+')
 		_userMode();
-	else if (!checkIrcPattern(&cmdParams[0][1]))
-		_user->addToSendBuffer(ERR_BADCHANMASK(_server->getName(), _user->getNick(), cmdParams[0]));
 	else
 		_channelMode();
 }
@@ -615,7 +603,7 @@ void	CommandExecution::_kick()
 	std::string const &channelName = &_command.getParams()[0][1]; 
 	std::string const &targetUser = _command.getParams()[1];
 	Channel *channel = _server->getChannelByName(channelName);
-	User *target = channel->getUser(targetUser);
+	// User *target = channel->getUser(targetUser);
 	std::string reason;
 	/* Check channel exists */
 	if (channel == nullptr)
@@ -651,13 +639,12 @@ void	CommandExecution::_kick()
 		reason = _command.getParams()[2];
 	else
 		reason = "default";
-	std::string const &msg = RPL_KICKEDCLIENT(serverName, kickerNick, \
-										channelName, target->getNick(), reason);
-	if (send(target->getUserInfo().fd, msg.c_str(), msg.size(), 0) < 0)
-   		std::cerr << "Error sending message: " << strerror(errno) << std::endl;
+	// std::string const &msg = RPL_KICKEDCLIENT(serverName, kickerNick, \
+	// 									channelName, target->getNick(), reason);
+	// if (send(target->getUserInfo().fd, msg.c_str(), msg.size(), 0) < 0)
+   	// 	std::cerr << "Error sending message: " << strerror(errno) << std::endl;
+	channel->broadcastToChannel(RPL_KICKBROADCAST(user_id(kickerNick, userName, _user->getIP()), channelName, targetUser, reason));
 	channel->removeFromChannel(targetUser);
-	channel->broadcastToChannel(RPL_KICKBROADCAST(kickerNick, userName, serverName, \
-								channelName, targetUser, reason));
 }
 
 void	CommandExecution::_invite()

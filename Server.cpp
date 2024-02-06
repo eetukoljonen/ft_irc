@@ -6,12 +6,48 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/05 16:58:56 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/06 13:54:22 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "Server.hpp"
+
+Server::Server() : _name("SocSyncServ"), _port(0), _listeningSocket(0), _pingIntervalTimer(time(0)), _pingMSG(0) {}
+
+Server::Server(Server const &cpy)
+{
+	(void)cpy;
+}
+
+Server &Server::operator=(Server const &rhs)
+{
+	(void)rhs;
+	return (*this);
+}
+
+
+Server::~Server()
+{
+	std::map<int, User *>::iterator userIt					=	_usersMap.begin();
+	std::map<int, User *>::iterator userIte					=	_usersMap.end();
+	while (userIt != userIte)
+	{
+		if (userIt->second)
+			delete userIt->second;
+		userIt++;
+	}
+	std::map<std::string, Channel *>::iterator channelIt	=	_channelMap.begin();
+	std::map<std::string, Channel *>::iterator channelIte	=	_channelMap.end();
+	while (channelIt != channelIte)
+	{
+		if (channelIt->second)
+			delete channelIt->second;
+		channelIt++;
+	}
+	for (size_t i = 0; i < _pollfds.size(); i++)
+		close(_pollfds[i].fd);
+}
 
 bool loop = true;
 
@@ -19,6 +55,28 @@ static void	signal_handler(int signal)
 {
 	(void)signal;
 	loop = false;
+}
+
+void Server::startServer(std::string const &port, std::string const &pw)
+{
+	_pw = pw;
+	try{_port = std::stoi(port);}
+	catch(const std::exception& e){std::cerr << "invalid port" << std::endl; return ;}
+	if (_port < 1 || _port > 65535)
+	{
+		std::cerr << "invalid port" << std::endl;
+		return ;
+	}
+	try 
+	{
+		_createSocket();
+		_bindSocket();
+		_addPollFd(_listeningSocket);
+	}
+	catch (std::exception &e) {}
+	signal(SIGINT, signal_handler);
+	while (loop)
+		_runServer();
 }
 
 void Server::_receiveMessage(int index)
@@ -37,11 +95,7 @@ void Server::_receiveMessage(int index)
 		perror("recv");
 	}
 	else
-	{
-		std::cout << ">>" << std::string(buf, 0, nbytes) << std::endl;
-		//std::cout << "fd = " << _usersMap.find(_pollfds[index].fd)->second->getUserInfo().fd << std::endl;
-		_usersMap.find(_pollfds[index].fd)->second->addToInputBuffer(std::string(buf, 0, nbytes) + "\r\n");
-	}
+		_usersMap.find(_pollfds[index].fd)->second->addToInputBuffer(std::string(buf, 0, nbytes));
 }
 
 void Server::_acceptClient()
@@ -99,6 +153,7 @@ void Server::_executeCommands(User *user)
 	while (1)
 	{
 		std::string input = user->extractInput();
+		std::cout << "INPUTTI: " << input << std::endl;
 		if (input.empty())
 			break ;
 		Command cmd(input);
@@ -169,27 +224,27 @@ User* Server::_getUserByFd(const int fd)
 	return nullptr;
 }
 
-Server::Server(int port, std::string pw, std::string name)
-:_name(name), _pw(pw), _port(port), _listeningSocket(0), _pingIntervalTimer(time(0)), _pingMSG(0)
-{
-	// std::string test1 = ":Nick!user@hostname PRIVMSG #example_channel :Hello, this is a regular message in a channel!\r\n";
+// Server::Server(int port, std::string pw, std::string name)
+// :_name(name), _pw(pw), _port(port), _listeningSocket(0), _pingIntervalTimer(time(0)), _pingMSG(0)
+// {
+// 	// std::string test1 = ":Nick!user@hostname PRIVMSG #example_channel :Hello, this is a regular message in a channel!\r\n";
 
-	// User testman;
-	// testman.appendInput(test1);
-	try 
-	{
-		_createSocket();
-		_bindSocket();
-		_addPollFd(_listeningSocket);
-	}
-	catch (std::exception &e) {}
+// 	// User testman;
+// 	// testman.appendInput(test1);
+// 	try 
+// 	{
+// 		_createSocket();
+// 		_bindSocket();
+// 		_addPollFd(_listeningSocket);
+// 	}
+// 	catch (std::exception &e) {}
 	
-	signal(SIGINT, signal_handler);
-	while (loop)
-		_runServer();
-	for (size_t i = 0; i < _pollfds.size(); i++)
-		close(_pollfds[i].fd);
-}
+// 	signal(SIGINT, signal_handler);
+// 	while (loop)
+// 		_runServer();
+// 	for (size_t i = 0; i < _pollfds.size(); i++)
+// 		close(_pollfds[i].fd);
+// }
 
 void Server::_bindSocket()
 {
@@ -354,7 +409,6 @@ void Server::_sendPingToUsers()
 		ping_msg = std::to_string(_pingMSG++);
 		// saving it to user class so when user responds we expect the message to match
 		it->second->setPongResponse(ping_msg);
-		it->second->resetPingResponseTimer();
 		it->second->addToSendBuffer(PING(_name, ping_msg));
 		it++;
 	}
@@ -362,7 +416,7 @@ void Server::_sendPingToUsers()
 
 void Server::_pingUsers()
 {
-	// reseting the ping interval timer
+	// resetting the ping interval timer
 	_pingIntervalTimer = time(0);
 	if (_usersMap.empty())
 		return ;
@@ -374,8 +428,8 @@ void Server::_pingUsers()
 	while (it != ite)
 	{
 		time_t userTimer = it->second->getPingResponseTimer();
-		if (curTime - userTimer >= 60)
-			std::cout << it->second->getNick() << " timer has gone over 60 secs" << std::endl;
+		if (curTime - userTimer >= 120)
+			std::cout << it->second->getNick() << " timer has gone over 120 secs" << std::endl;
 		it++;
 	}
 	_sendPingToUsers();

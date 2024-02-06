@@ -45,8 +45,9 @@
 
 # define RPL_KICKEDCLIENT(server, kickerNick, channel, kickedUser, reason) \
     (":" + kickerNick + "!" + server + " KICK " + "#" + channel + " " + kickedUser + " " + reason + "\r\n")
-# define RPL_KICKBROADCAST(kickerNick, kickerUsername, serverName, channel, kicked, reason) \
-    (user_id(kickerNick, kickerUsername, serverName) + " KICK #" + channel + " " + kicked + " :" + reason + "\r\n")
+// # define RPL_KICKBROADCAST(kickerNick, kickerUsername, serverName, channel, kicked, reason) \
+//     (user_id(kickerNick, kickerUsername, serverName) + " KICK #" + channel + " " + kicked + " :" + reason + "\r\n")
+# define RPL_KICKBROADCAST(user_id, channel, kicked, reason) (user_id + " KICK #" + channel + " " + kicked + " :" + reason + "\r\n")
 # define ERR_USERNOTONCHANNEL(server, client, nick, channel) \
     (":" + server + " 441 " + client + " " + nick + " #" + channel + " :They aren't on that channel\r\n")
 # define ERR_NOTONCHANNEL(server, client, channel) \
@@ -118,3 +119,5 @@
 /* QUIT */
 
 # define QUIT(user_id, msg) (user_id + " QUIT " + msg + "\r\n")
+
+# define ERR_UNKNOWNCOMMAND(servername, client, command) (":" + servername + " 421 " + client + " " + command + " :Unknown command\r\n")

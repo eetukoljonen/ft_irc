@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/01 15:35:13 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/06 13:39:21 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,36 +29,39 @@ public:
     Channel(Channel const &cpy);
     ~Channel();
     Channel							&operator=(Channel const &rhs);
+	//bools
 	bool							isOperator(std::string const &nick);
 	bool							isInvited(std::string const &nick);
 	bool							isKicked(std::string const &nick);
+	bool 							UserOnChannel(std::string const &nick);
+	//setters
 	void							addToChannel(User *user);
 	void							addToOperators(std::string const &nick);
 	void							addToKickList(std::string const &nick);
 	void							addToInviteList(std::string const &nick);
 	void							setChannelName(std::string const &name);
-	std::string const				&getChannelName() const;
 	void							setChannelKey(std::string const &key);
+	void							setTopic(std::string const &topic);
+	void							addChannelMode(u_int8_t const &mode);
+	void							setUserLimit(int const &limit);
+	void							removeFromChannel(std::string const &nick);
+	void							removeOperatorPrivilages(std::string const &nick);
+	void							removeChannelMode(u_int8_t const &mode);
+	void							clearTopic();
+	//getters
+	std::string const				&getChannelName() const;
 	std::string const				&getChannelkey() const;
 	std::string						getNickList();
 	std::string const				&getTopic() const;
-	void							clearTopic();
-	void							setTopic(std::string const &topic);
 	int const						&getUserLimit() const;
 	int								getUserCount() const;
-
-	bool 							UserOnChannel(std::string const &nick);
 	User 							*getUser(std::string const &nick) const;
+	std::map<std::string, User *>	&getUsersMap();
+	u_int8_t const					&getChannelMode() const;
+	std::string						getChannelModeString();
+	//broadcast
 	void							broadcastToChannel(const std::string& msg);
 	void							broadcastToChannel(const std::string& msg, User *ignoredUser);
-	std::map<std::string, User *>	&getUsersMap();
-	void							removeFromChannel(std::string const &nick);
-	void							removeOperatorPrivilages(std::string const &nick);
-	void							addChannelMode(u_int8_t const &mode);
-	void							removeChannelMode(u_int8_t const &mode);
-	u_int8_t const					&getChannelMode() const;
-	void							setUserLimit(int const &limit);
-	std::string						getChannelModeString();
 private:
 	std::map<std::string, User *>	_users;
 	std::vector<std::string>		_invitedUsers;

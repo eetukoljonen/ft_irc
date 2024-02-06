@@ -112,11 +112,11 @@ int User::addToInputBuffer(std::string msg)
 		appendInput(_userInput, cmd);
 	}
 	if (!msg.empty())
-		appendInput(_userInput, msg);
-	std::cout << "inside user input size: " << _userInput.size() << std::endl;
-	for (size_t i = 0; i < _userInput.size(); i++)
 	{
-		std::cout << _userInput[i] << std::endl;
+		size_t msgSize = msg.size();
+		if (msgSize == 510 && msg[msgSize - 1] != '\n')
+			msg += "\n";
+		appendInput(_userInput, msg);
 	}
 	return (0);
 }

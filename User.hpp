@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/05 15:14:13 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/06 13:42:40 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,30 +46,32 @@ public:
     User(User const &cpy);
     ~User();
     User						&operator=(User const &rhs);
-	int							addToInputBuffer(std::string input);
-	std::string const			extractInput();
-	t_client 					&getUserInfo();
-	void						addToSendBuffer(std::string const &msg);
-	std::string const			extractFromSendBuffer();
+	//bools
 	bool const					&isRegistered() const;
-
+	bool const					&isPassCorrect() const;
+	//getters
 	std::string const			&getNick();
 	std::string const			&getUser();
+	time_t const				&getPingResponseTimer();
+	std::string const			&getUserMode() const;
+	std::string const			&getIP() const;
+	t_client					&getUserInfo();
+	std::string const			extractInput();
+	std::vector<Channel *>		getChannels() const;
+	std::string const			extractFromSendBuffer();
+	std::string const			&getPongResponse() const;
+	//setters
+	int							addToInputBuffer(std::string input);
+	void						addToSendBuffer(std::string const &msg);
 	void						setNick(std::string const &nick);
 	void						setUser(std::string const &user);
 	void						setRegistrationFlag(bool flag);
-	bool const					&isPassCorrect() const;
 	void						setPassFlag(bool flag);
 	void						removeUserMode(std::string const &mode);
 	void						addUserMode(std::string const &mode);
-	std::string const			&getUserMode() const;
-	std::string const			&getIP() const;
 	void						setIP(std::string const &ip);
 	void						resetPingResponseTimer();
-	time_t const				&getPingResponseTimer();
 	void						setPongResponse(std::string const &msg);
-	std::string const			&getPongResponse() const;
-	std::vector<Channel *>		getChannels() const;
 	void						addNewChannel(Channel *channel);
 	void						setClientInfo(t_client const &info);
 private:

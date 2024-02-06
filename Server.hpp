@@ -1,10 +1,23 @@
-#ifndef SERVER_HPP
-# define SERVER_HPP
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/02/06 13:34:20 by ekoljone          #+#    #+#             */
+/*   Updated: 2024/02/06 13:36:17 by ekoljone         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-# define MAX_CLIENTS 30
+#ifndef __SERVER_HPP__
+#define __SERVER_HPP__
+
+# define MAX_CLIENTS 32
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include "Server.hpp"
 #include <netinet/in.h>
 #include <unistd.h>
 #include <cstring>
@@ -21,26 +34,29 @@
 #include "Replies.hpp"
 #include "Channel.hpp"
 #include <time.h>
-
+#include "Utils.hpp"
 
 class Server
 {
 public:
-	Server(int port, std::string pw, std::string name = "Garbaggio");
-	~Server(){};
+	Server();
+	~Server();
+	// Server(int port, std::string pw, std::string name = "Garbaggio");
+	void									startServer(std::string const &port, std::string const &pw);
+	void 									deleteUser(int fd);
+	// getters
 	std::string const						&getName() const;
 	std::string const						&getPass() const;
 	std::map<int, User *>					&getUsersMap();
 	Channel									*getChannelByName(std::string const &name) const;
 	User									*_findUserByNick(std::string const &nick) const;
 	User									*_findUserByUsername(std::string const &username) const;
-	void									addNewChannel(Channel *channel);
 	std::vector<struct pollfd>::iterator	findPollStructByFd(int fd);
-	void 									deleteUser(int fd);
+	// setters
+	void									addNewChannel(Channel *channel);
 	Channel									*createChannel(std::string const &name);
-	// Channel								*createChannel(std::string const &name, std::string const &key);
 private:
-	std::string 							_name;
+	std::string const						_name;
 	std::string								_host;
 	std::string 							_pw;
 	int 									_port;
@@ -51,7 +67,7 @@ private:
 	std::map<std::string, Channel *>		_channelMap;
 	t_client								_client;
 	time_t									_pingIntervalTimer;
-	unsigned int							_pingMSG;								
+	unsigned int							_pingMSG;		
 
 	void									_runServer();
 	void									_executeCommands(User *user);
@@ -64,6 +80,9 @@ private:
 	void									_broadcastServer(std::string const &msg);
 	void									_pingUsers();
 	void									_sendPingToUsers();
+
+	Server(Server const &cpy);
+	Server									&operator=(Server const &rhs);
 };
 
 #endif
