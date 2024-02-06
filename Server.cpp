@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/01/31 15:50:34 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/06 11:29:17 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,36 +65,6 @@ void Server::_acceptClient()
 	}
 }
 
-// void	Server::_clientRegistration(User &user)
-// {
-// 	user.addToSendBuffer(RPL_WELCOME(_name, user_id(user.getNick(), user.getUser()), user.getNick()));
-// 	//handle rest rpl later
-	
-// 	std::ifstream		data;
-// 	char				filepath[5] = "motd";
-
-// 	data.open(filepath);
-// 	if (!data)
-// 	{
-// 		user.addToSendBuffer(ERR_NOMOTD(_name, user.getNick()));
-// 		return ;
-// 	}
-// 	else
-// 	{
-// 		std::string		motd_lines;
-// 		std::string		buf;
-		
-// 		buf = RPL_MOTDSTART(user.getNick(), "ft_irc (localhost)");
-// 		while (getline(data, motd_lines))
-// 		{
-// 			buf += RPL_MOTD(_name, user.getNick(), motd_lines);
-// 		}
-// 		buf += RPL_ENDOFMOTD(_name, user.getNick());
-// 		user.addToSendBuffer(buf);
-// 	}
-// 	data.close();
-// }
-
 void Server::_executeCommands(User *user)
 {
 	while (1)
@@ -142,7 +112,7 @@ void Server::_runServer()
 					msg.append(tmp);
 				}
 				// std::string msg = currentUser->extractFromSendBuffer();
-				// // std::cout << "msg to client: " << msg << std::endl;
+				// std::cout << "msg to client: " << msg << std::endl;
 				if (!msg.empty())
 					send(_pollfds[i].fd, msg.c_str(), msg.size(), 0);
 			}
@@ -330,8 +300,6 @@ Channel *Server::createChannel(std::string const &name)
 // 	addNewChannel(channel);
 // 	return (channel);
 // }
-
-//todo PING AND PONG
 
 void Server::_broadcastServer(std::string const &msg)
 {

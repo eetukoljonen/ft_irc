@@ -7,13 +7,16 @@
 # define RPL_CREATED(server, client, datetime) (":" + server + " 003 " + client + " :This server was created " + datetime + "\r\n")
 # define RPL_MYINFO(server, client, version, user_modes, chan_modes, chan_param_modes)\
 						 (":" + server + " 004 " + client + " " + server + " " + version + " " + user_modes + " " + chan_modes + " " + chan_param_modes + "\r\n")
+# define RPL_ISUPPORT(server, client, tokens) (":" + server " 005 " + client + " " + tokens + " :are supported by this server\r\n")
+# define ERR_NOTREGISTERED(servername)(":" + servername + " 451 :Register first.\r\n")
+# define ERR_PASSWDMISMATCH(server, client) (":" + server + " 464 " + client + " :Password incorrect.\r\n")
+
+/* MOTD */
+
 # define RPL_MOTDSTART(server, client) (":" + server + " 375 " + client + " :- " + server + " Message of the day - \r\n")
 # define RPL_MOTD(server, client, motd_line) (":" + server  + " 372 " + client + " :" + motd_line + "\r\n")
 # define RPL_ENDOFMOTD(server, client) (":" + server + " 376 " + client + " :End of /MOTD command.\r\n")
-# define RPL_ISUPPORT(server, client, tokens) (":" + server " 005 " + client + " " + tokens + " :are supported by this server\r\n")
-# define ERR_NOTREGISTERED(servername)(":" + servername + " 451 :Register first.\r\n")
 # define ERR_NOMOTD(server, client) (":" + server + " 422 " + client + " :MOTD File is missing\r\n")
-# define ERR_PASSWDMISMATCH(server, client) (":" + server + " 464 " + client + " :Password incorrect.\r\n")
 
 /* NICK */
 
