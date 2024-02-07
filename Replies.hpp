@@ -49,11 +49,11 @@
     (":" + kickerNick + "!" + server + " KICK " + "#" + channel + " " + kickedUser + " " + reason + "\r\n")
 // # define RPL_KICKBROADCAST(kickerNick, kickerUsername, serverName, channel, kicked, reason) \
 //     (user_id(kickerNick, kickerUsername, serverName) + " KICK #" + channel + " " + kicked + " :" + reason + "\r\n")
-# define RPL_KICKBROADCAST(user_id, channel, kicked, reason) (user_id + " KICK #" + channel + " " + kicked + " :" + reason + "\r\n")
+# define RPL_KICKBROADCAST(user_id, channel, kicked, reason) (user_id + " KICK " + channel + " " + kicked + " :" + reason + "\r\n")
 # define ERR_USERNOTONCHANNEL(server, client, nick, channel) \
-    (":" + server + " 441 " + client + " " + nick + " #" + channel + " :They aren't on that channel\r\n")
+    (":" + server + " 441 " + client + " " + nick + " " + channel + " :They aren't on that channel\r\n")
 # define ERR_NOTONCHANNEL(server, client, channel) \
-    (":" + server + " 442 " + client + " #" + channel + " :You're not on that channel\r\n")
+    (":" + server + " 442 " + client + " " + channel + " :You're not on that channel\r\n")
 
 /* KILL */
 
@@ -116,7 +116,7 @@
 
 // err channel operator
 
-# define ERR_CHANOPRIVSNEEDED(servername, channel, client) (":" + servername + " 482" + client + " #" + channel + " :You're not channel operator\r\n")
+# define ERR_CHANOPRIVSNEEDED(servername, channel, client) (":" + servername + " 482 " + client + " #" + channel + " :You're not channel operator\r\n")
 
 /* QUIT */
 

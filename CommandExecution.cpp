@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/07 14:19:07 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/07 16:25:41 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -629,7 +629,6 @@ void	CommandExecution::_kick()
     	_user->addToSendBuffer(ERR_NEEDMOREPARAMS(serverName, kickerNick, command));
     	return;
 	}
-	//channel name without the hashtag -> added it back in the replies.hpp
 	std::string const &channelName = _command.getParams()[0];
 	std::string const &targetUser = _command.getParams()[1];
 	Channel *channel = _server->getChannelByName(&channelName[1]);
@@ -693,8 +692,8 @@ void	CommandExecution::_invite()
     }
 
     std::string const &targetNick = _command.getParams()[0];
-    std::string const &channelName = &_command.getParams()[1][1];
-	Channel *channel = _server->getChannelByName(channelName);
+    std::string const &channelName = _command.getParams()[1];
+	Channel *channel = _server->getChannelByName(&channelName[1]);
 	/* Check channel name */
 	if (!isValidChannelName(_command.getParams()[1]))
 	{
@@ -710,13 +709,13 @@ void	CommandExecution::_invite()
 	/* Check user privileges */
 	if (!channel->isOperator(inviterNick))
 	{
-		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(serverName, inviterNick, channelName));
+		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(serverName, channelName, inviterNick));
 		return ;
 	}
 	/* Check that inviter is on channel */
 	if (!channel->UserOnChannel(inviterNick))
 	{
-		_user->addToSendBuffer(ERR_NOTONCHANNEL(serverName, userName, channelName));
+		_user->addToSendBuffer(ERR_NOTONCHANNEL(serverName, inviterNick, channelName));
 		return ;
 	}
 	/* Check that invited is NOT on channel */
@@ -795,7 +794,7 @@ void CommandExecution::_privmsg()
 	std::vector<std::string> receivers = split(_command.getParams()[0], ',');
 	for (const std::string &receiver : receivers)
 	{
-		if (!receivers.empty() && receiver[0] == '#') // add other symbols
+		if (!receivers.empty() && isValidChannelName(receiver))
 		{
 			Channel* channel = _server->getChannelByName(&receiver[1]);
 			// The receiver is a channel
@@ -808,7 +807,7 @@ void CommandExecution::_privmsg()
 			} 
 			else
 				_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, receiver));
-		} 
+		}
 		else
 		{
 			// The receiver is a user
