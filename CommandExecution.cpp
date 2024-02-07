@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/06 17:17:07 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/07 13:12:37 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -623,7 +623,11 @@ void	CommandExecution::_kick()
     	return;
 	}
 	
-	//channel name without the hashtag -> added it back in the replies.hpp
+	if (!isValidChannelName(_command.getParams()[0]))
+	{
+		_user->addToSendBuffer(ERR_BADCHANMASK(serverName, userName, _command.getParams()[0]));
+		return ;
+	}
 	std::string const &channelName = &_command.getParams()[0][1];
 	std::string const &targetUser = _command.getParams()[1];
 	Channel *channel = _server->getChannelByName(channelName);
@@ -635,13 +639,7 @@ void	CommandExecution::_kick()
 		_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, channelName));
 		return ;
 	}
-	/* Check channel name */
-	if (!isValidChannelName(_command.getParams()[0]))
-	{
-		_user->addToSendBuffer(ERR_BADCHANMASK(serverName, userName, _command.getParams()[0]));
-		return ;
-	}
-	/* Check user privileges */
+		/* Check user privileges */
 	if (!channel->isOperator(kickerNick))
 	{
 		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(serverName, channelName, channelName));
@@ -785,7 +783,7 @@ void CommandExecution::_privmsg()
 	std::vector<std::string> receivers = split(_command.getParams()[0], ',');
 	for (const std::string &receiver : receivers)
 	{
-		if (!receivers.empty() && receiver[0] == '#')
+		if (!receivers.empty() && receiver[0] == '#') // add other symbols
 		{
 			Channel* channel = _server->getChannelByName(&receiver[1]);
 			// The receiver is a channel
