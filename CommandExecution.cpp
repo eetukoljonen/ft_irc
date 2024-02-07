@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/06 17:17:07 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/07 14:17:19 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -285,8 +285,6 @@ void CommandExecution::_motd()
     }
 }
 
-
-
 void CommandExecution::_userF()
 {
 	if (_user->isRegistered())
@@ -540,6 +538,11 @@ void CommandExecution::_channelMode()
 
 void CommandExecution::_mode()
 {
+	if (!_user->isRegistered())
+	{
+		_user->addToSendBuffer(ERR_NOTREGISTERED(_server->getName()));
+		return ;
+	}
 	std::vector<std::string> const &cmdParams = _command.getParams();
 	if (cmdParams.empty())
 	{
@@ -564,8 +567,8 @@ void CommandExecution::_pass()
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "PASS"));
 		return  ;
 	}
-	else if (!_command.getParams().empty() && 
-	_command.getParams()[0].compare(_server->getPass()))
+	else if (!_command.getParams().empty()
+			&& _command.getParams()[0].compare(_server->getPass()))
 	{
 		_user->addToSendBuffer(ERR_PASSWDMISMATCH(_server->getName(), _user->getNick()));
 		return ;
@@ -611,26 +614,29 @@ void    CommandExecution::_kill()
 
 void	CommandExecution::_kick()
 {
+	if (!_user->isRegistered())
+	{
+		_user->addToSendBuffer(ERR_NOTREGISTERED(_server->getName()));
+		return ;
+	}
 	std::string const &serverName = _server->getName();
 	std::string const &userName = _user->getUser();
 	std::string const &command = _command.getCommand();
-	std::string const &kickerNick = _user->getNick();
-		
+	std::string const &kickerNick = _user->getNick();		
 	/* Check that the command has enough params */
 	if (_command.getParams().size() < 2)
 	{
     	_user->addToSendBuffer(ERR_NEEDMOREPARAMS(serverName, kickerNick, command));
     	return;
 	}
-	
 	//channel name without the hashtag -> added it back in the replies.hpp
-	std::string const &channelName = &_command.getParams()[0][1];
+	std::string const &channelName = _command.getParams()[0];
 	std::string const &targetUser = _command.getParams()[1];
-	Channel *channel = _server->getChannelByName(channelName);
+	Channel *channel = _server->getChannelByName(&channelName[1]);
 	// User *target = channel->getUser(targetUser);
 	std::string reason;
 	/* Check channel exists */
-	if (channel == nullptr)
+	if (channel == nullptr || !isValidChannelName(channelName))
 	{
 		_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, channelName));
 		return ;
@@ -667,7 +673,7 @@ void	CommandExecution::_kick()
 	// 									channelName, target->getNick(), reason);
 	// if (send(target->getUserInfo().fd, msg.c_str(), msg.size(), 0) < 0)
    	// 	std::cerr << "Error sending message: " << strerror(errno) << std::endl;
-	channel->broadcastToChannel(RPL_KICKBROADCAST(user_id(kickerNick, userName, _user->getIP()), channelName, targetUser, reason));
+	channel->broadcastToChannel(RPL_KICKBROADCAST(user_id(kickerNick, userName, _user->getIP()), &channelName[1], targetUser, reason));
 	channel->removeFromChannel(targetUser);
 	_user->removeChannel(channel);
 	if (channel->getUserCount() <= 0)
@@ -676,6 +682,11 @@ void	CommandExecution::_kick()
 
 void	CommandExecution::_invite()
 {
+	if (!_user->isRegistered())
+	{
+		_user->addToSendBuffer(ERR_NOTREGISTERED(_server->getName()));
+		return ;
+	}
 	std::string const &serverName = _server->getName();
 	std::string const &userName = _user->getUser();
 	std::string const &command = _command.getCommand();
@@ -763,6 +774,11 @@ void CommandExecution::_ping()
 
 void CommandExecution::_privmsg()
 {
+	if (!_user->isRegistered())
+	{
+		_user->addToSendBuffer(ERR_NOTREGISTERED(_server->getName()));
+		return ;
+	}
 	std::string const &serverName = _server->getName();
 	std::string const &userName = _user->getUser();
 	std::string const &command = _command.getCommand();
@@ -834,11 +850,15 @@ void CommandExecution::_quit()
 		}
 	}
 	_server->deleteUser(_user->getUserInfo().fd);
-	// todo check deleteUser function
 }
 
 void CommandExecution::_topic()
 {
+	if (!_user->isRegistered())
+	{
+		_user->addToSendBuffer(ERR_NOTREGISTERED(_server->getName()));
+		return ;
+	}
 	std::vector<std::string> const &cmdParams = _command.getParams();
 	size_t paramSize = cmdParams.size();
 	if (paramSize == 0)
@@ -882,6 +902,11 @@ void CommandExecution::_topic()
 
 void CommandExecution::_part()
 {
+	if (!_user->isRegistered())
+	{
+		_user->addToSendBuffer(ERR_NOTREGISTERED(_server->getName()));
+		return ;
+	}
 	std::vector<std::string> const &params = _command.getParams();
 	size_t paramSize = params.size();
 	if (paramSize == 0)
@@ -913,6 +938,7 @@ void CommandExecution::_part()
 						reason = ":" + reason;
 					channel->broadcastToChannel(PART(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, reason));
 					_user->removeChannel(channel);
+					channel->removeFromChannel(_user->getNick());
 					if (channel->getUserCount() <= 0)
 						_server->deleteChannel(channel);
 				}
