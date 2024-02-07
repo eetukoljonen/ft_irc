@@ -47,10 +47,4 @@
 /msg #testChannel
 /quit Goodbye!
 
-
-
-
 todo:
-/motd
-/part
-/polerr
