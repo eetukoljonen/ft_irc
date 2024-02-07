@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/07 14:17:19 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/07 16:32:15 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 	_server = server;
 	_user = user;
 	_command = command;
-	std::string	Cmds[16] = 
+	std::string	Cmds[17] = 
 	{
 		"JOIN",
 		"NICK",
@@ -51,12 +51,13 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		"PRIVMSG",
 		"QUIT",
 		"TOPIC",
-		"PART"
+		"PART",
+		"WHO"
     };
     
     int i = 0;
 	std::string commandStr = command.getCommand();
-    while (i < 16)
+    while (i < 17)
     {
         if (!commandStr.compare(Cmds[i]))
             break;
@@ -80,6 +81,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 13: _quit(); break;
 		case 14: _topic(); break;
 		case 15: _part(); break;
+		case 16: _who(); break;
 		default: _user->addToSendBuffer(ERR_UNKNOWNCOMMAND(_server->getName(), _user->getNick(), _command.getCommand())); break;
 	}
 }
@@ -87,12 +89,12 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 void CommandExecution::_joinSucces(Channel *channel)
 {
 	channel->addToChannel(_user);
-	channel->broadcastToChannel(RPL_JOIN(user_id(_user->getNick(), _user->getUser(), _user->getIP()), "JOIN", channel->getChannelName()));
+	channel->broadcastToChannel(RPL_JOIN(user_id(_user->getNick(), _user->getUser(), _user->getIP()), "JOIN", "#" + channel->getChannelName()));
 	std::string const &topic = channel->getTopic();
 	if (!topic.empty())
 		_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), channel->getChannelName(), channel->getTopic()));
 	_user->addToSendBuffer(RPL_NAMES(_server->getName(), channel->getChannelName(), channel->getNickList(),  _user->getNick()));
-	_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), channel->getChannelName(), _user->getNick()));
+	_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), "#" + channel->getChannelName(), _user->getNick()));
 	_user->addNewChannel(channel);
 }
 
@@ -101,13 +103,13 @@ void CommandExecution::_joinExistingChannel(Channel *channel, std::string const 
 	if (channel->UserOnChannel(_user->getNick()))
 		return ;
 	if (channel->getChannelMode() & MODE_i && !channel->isInvited(_user->getNick()))
-		_user->addToSendBuffer(ERR_INVITEONLYCHAN(_server->getName(), _user->getNick(), channel->getChannelName()));
+		_user->addToSendBuffer(ERR_INVITEONLYCHAN(_server->getName(), _user->getNick(), "#" + channel->getChannelName()));
 	else if (channel->getUserCount() >= channel->getUserLimit())
-		_user->addToSendBuffer(ERR_CHANNELISFULL(_server->getName(), _user->getNick(), channel->getChannelName()));
+		_user->addToSendBuffer(ERR_CHANNELISFULL(_server->getName(), _user->getNick(), "#" + channel->getChannelName()));
 	else
 	{
 		if (channel->getChannelMode() & MODE_k && channel->getChannelkey().compare(key))
-			_user->addToSendBuffer(ERR_BADCHANNELKEY(_server->getName(), _user->getNick(), channel->getChannelName()));
+			_user->addToSendBuffer(ERR_BADCHANNELKEY(_server->getName(), _user->getNick(), "#" + channel->getChannelName()));
 		else
 			_joinSucces(channel);
 	}
@@ -177,14 +179,6 @@ void CommandExecution::_join()
 			_user->addToSendBuffer(ERR_NOSUCHCHANNEL(_server->getName(), _user->getNick(), channelName));
 	}
 }
-
-// bool checkIrcPattern(std::string const &str)
-// {
-//     // Regular expression for a valid IRC nickname
-//     std::regex ircPattern("^[A-Za-z[\\]^_`][A-Za-z0-9[\\]^_`]*$");
-//     // Check if the nickname matches the pattern
-//     return (std::regex_match(str, ircPattern));
-// }
 
 bool CommandExecution::_isValidNick()
 {
@@ -420,7 +414,7 @@ bool CommandExecution::_checkForOpPrivilages(Channel *channel)
 {
 	if (!channel->isOperator(_user->getNick()))
 	{
-		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(_server->getName(), channel->getChannelName(), _user->getNick()));
+		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(_server->getName(), "#" + channel->getChannelName(), _user->getNick()));
 		return (false);
 	}
 	return (true);
@@ -523,7 +517,7 @@ void CommandExecution::_channelMode()
 	}
 	if (paramSize == 1)
 	{
-		_user->addToSendBuffer(RPL_CHANNELMODIS(_server->getName(), _user->getNick(), channel->getChannelName(), channel->getChannelModeString()));
+		_user->addToSendBuffer(RPL_CHANNELMODIS(_server->getName(), _user->getNick(), channelName, channel->getChannelModeString()));
 		return ;
 	}
 	std::string const &mode = cmdParams[1];
@@ -534,6 +528,10 @@ void CommandExecution::_channelMode()
 		_removeChannelModes(channel, &mode[1], channelName, modeParams);
 	else if (prefix == '+')
 		_addChannelModes(channel, &mode[1], channelName, modeParams);
+	else if (!mode.compare("b"))
+		_user->addToSendBuffer(RPL_ENDOFBANLIST(_server->getName(), _user->getNick(), channelName));
+	else
+		_user->addToSendBuffer(ERR_UNKNOWNMODE(_server->getName(), mode, channelName));
 }
 
 void CommandExecution::_mode()
@@ -866,9 +864,8 @@ void CommandExecution::_topic()
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "TOPIC"));
 		return ;
 	}
-	std::string channelName = cmdParams[0];
-	channelName = channelName.substr(1);
-	Channel *channel = _server->getChannelByName(channelName);
+	std::string const &channelName = cmdParams[0];
+	Channel *channel = _server->getChannelByName(&channelName[1]);
 	if (!isValidChannelName(channelName) || channel == nullptr)
 	{
 		_user->addToSendBuffer(ERR_NOSUCHCHANNEL(_server->getName(), _user->getNick(), channelName));
@@ -936,7 +933,7 @@ void CommandExecution::_part()
 						reason = partMessages[i];
 					if (reason.empty() || (reason.size() > 1 && reason[0] != ':'))
 						reason = ":" + reason;
-					channel->broadcastToChannel(PART(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, reason));
+					channel->broadcastToChannel(PART(user_id(_user->getNick(), _user->getUser(), _user->getIP()), "#" + channelName, reason));
 					_user->removeChannel(channel);
 					channel->removeFromChannel(_user->getNick());
 					if (channel->getUserCount() <= 0)
@@ -951,4 +948,27 @@ void CommandExecution::_part()
 		else
 			_user->addToSendBuffer(ERR_NOSUCHCHANNEL(_server->getName(), _user->getNick(), channelName));
 	}
+}
+
+void CommandExecution::_who()
+{
+	if (!_user->isRegistered())
+	{
+		_user->addToSendBuffer(ERR_NOTREGISTERED(_server->getName()));
+		return ;
+	}
+	std::vector<std::string> const &params = _command.getParams();
+	size_t paramSize = params.size();
+	if (paramSize == 0)
+	{
+		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "PART"));
+		return ;
+	}
+	std::string const &channelName = params[0];
+	if (!isValidChannelName(channelName))
+	{
+		_user->addToSendBuffer(ERR_NOSUCHCHANNEL(_server->getName(), _user->getNick(), channelName));
+		return ;
+	}
+	_user->addToSendBuffer(RPL_ENDOFWHO(_server->getName(), _user->getNick(), channelName));
 }

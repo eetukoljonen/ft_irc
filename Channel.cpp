@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/06 11:21:28 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/07 15:56:43 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,14 +198,12 @@ void Channel::removeOperatorPrivilages(std::string const &nick)
 
 void Channel::addChannelMode(u_int8_t const &mode)
 {
-	if (0xf & (MODE_l | MODE_t | MODE_k | MODE_l))
-		_modes |= mode;
+	_modes |= mode;
 }
 
 void Channel::removeChannelMode(u_int8_t const &mode)
 {
-	if (0xf & (MODE_l | MODE_t | MODE_k | MODE_l))
-		_modes ^= mode;
+	_modes ^= mode;
 }
 u_int8_t const &Channel::getChannelMode() const
 {

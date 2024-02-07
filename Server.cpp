@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/07 14:16:07 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/07 16:22:58 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,6 +109,11 @@ void Server::_acceptClient()
 		perror("accept");
 	else if (client_info.fd)
 	{
+		if (_usersMap.size() >= MAX_CLIENTS)
+		{
+			send(client_info.fd, "ERROR: Server is full. Please try again later.\r\n", 49, 0);
+			return ;
+		}
 		User *newUser = new User;
 		newUser->setClientInfo(client_info);
 		_addPollFd(client_info.fd);
