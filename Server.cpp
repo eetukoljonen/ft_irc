@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/06 17:07:39 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/07 14:16:07 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,16 +130,64 @@ void Server::_executeCommands(User *user)
 	}
 }
 
+void Server::_sendMessage(int fd, User *currentUser)
+{
+	if (fd != _listeningSocket)
+	{
+		std::string msg;
+		while (1)
+		{
+			std::string tmp = currentUser->extractFromSendBuffer();
+			if (tmp.empty())
+				break ;
+			msg.append(tmp);
+		}
+		if (!msg.empty())
+		{
+			int bytes = send(fd, msg.c_str(), msg.size(), 0);
+			if (bytes == -1)
+			{
+				perror("FATAL send: ");
+				exit(1);
+			}
+			if (static_cast<size_t>(bytes) < msg.size())
+			{
+				msg.substr(bytes);
+				currentUser->addToInputBufferFront(msg);
+			}
+		}
+	}
+}
+
+void Server::_connectionError(int fd, User *currentUser)
+{
+	std::vector<Channel *> userChannels = currentUser->getChannels();
+	if (!userChannels.empty())
+	{
+		std::vector<Channel *>::iterator it = userChannels.begin();
+		std::vector<Channel *>::iterator ite = userChannels.end();
+		while (it != ite)
+		{
+			Channel *channel = *it;
+			channel->removeFromChannel(currentUser->getNick());
+			channel->broadcastToChannel(QUIT(user_id(currentUser->getNick(), currentUser->getUser(), currentUser->getIP()), ":connection lost"));
+			it++;
+		}
+	}
+	deleteUser(fd);
+}
+
 void Server::_runServer()
 {    	
 	nfds_t numFds = static_cast<nfds_t>(_pollfds.size());
-	int numEvents = poll(&(_pollfds[0]), numFds, 0);
-	if (numEvents == -1)
+	// int numEvents = poll(&(_pollfds[0]), numFds, 0);
+	if (poll(&(_pollfds[0]), numFds, 0) == -1)
 	{
-		perror("poll");
+		perror("FATAL poll: ");
 		exit(1);
 	}
-    for (size_t i = 0; i < numFds; ++i) 
+	size_t i = 0;
+    while (i < _pollfds.size())
 	{
 		User *currentUser = _getUserByFd(_pollfds[i].fd);
 		if (_pollfds[i].revents & POLLIN)
@@ -153,61 +201,14 @@ void Server::_runServer()
 			}
 		}
 		else if (_pollfds[i].revents & POLLOUT)
-		{
-			if (_pollfds[i].fd != _listeningSocket)
-			{
-				std::string msg;
-				while (1)
-				{
-					std::string tmp = currentUser->extractFromSendBuffer();
-					if (tmp.empty())
-						break ;
-					msg.append(tmp);
-				}
-				// std::string msg = currentUser->extractFromSendBuffer();
-				// std::cout << "msg to client: " << msg << std::endl;
-				if (!msg.empty())
-				{
-					int bytes = send(_pollfds[i].fd, msg.c_str(), msg.size(), 0);
-					if (bytes == -1)
-					{
-						//todo exit the server sys call error
-					}
-					if (static_cast<size_t>(bytes) < msg.size())
-					{
-						msg.substr(bytes);
-						currentUser->addToInputBufferFront(msg);
-					}
-				}
-			}
-		}
+			_sendMessage(_pollfds[i].fd, currentUser);
 		else if (_pollfds[i].revents & (POLLNVAL | POLLERR | POLLHUP))
-		{
-			if (_pollfds[i].revents & POLLERR)
-				std::cout << "POLLERR" << std::endl;
-			else if (_pollfds[i].revents & POLLNVAL)
-				std::cout << "POLLNVAL" << std::endl;
-			else if (_pollfds[i].revents & POLLHUP)
-				std::cout << "POLLHUP" << std::endl;
-			std::vector<Channel *> userChannels = currentUser->getChannels();
-			if (!userChannels.empty())
-			{
-				std::vector<Channel *>::iterator it = userChannels.begin();
-				std::vector<Channel *>::iterator ite = userChannels.end();
-				while (it != ite)
-				{
-					Channel *channel = *it;
-					channel->removeFromChannel(currentUser->getNick());
-					channel->broadcastToChannel(QUIT(user_id(currentUser->getNick(), currentUser->getUser(), currentUser->getIP()), ":connection lost"));
-					it++;
-				}
-			}
-			deleteUser(_pollfds[i].fd);
-		}
+			_connectionError(_pollfds[i].fd, currentUser);
 		// checking if ping interval timer has gone over 60 secs
 		time_t currentTime = time(0);
 		if (currentTime - _pingIntervalTimer >= 60)
 			_pingUsers();
+		i++;
 	}
 }
 
@@ -215,35 +216,9 @@ User* Server::_getUserByFd(const int fd)
 {
    	auto it = _usersMap.find(fd);
     if (it != _usersMap.end())
-	{
-		//std::cout << user->getUserInfo().fd << std::endl;
-		return it->second;
-	}
-	// std::cout << "couldnt find fd from map" << std::endl;
-	return nullptr;
+		return (it->second);
+	return (nullptr);
 }
-
-// Server::Server(int port, std::string pw, std::string name)
-// :_name(name), _pw(pw), _port(port), _listeningSocket(0), _pingIntervalTimer(time(0)), _pingMSG(0)
-// {
-// 	// std::string test1 = ":Nick!user@hostname PRIVMSG #example_channel :Hello, this is a regular message in a channel!\r\n";
-
-// 	// User testman;
-// 	// testman.appendInput(test1);
-// 	try 
-// 	{
-// 		_createSocket();
-// 		_bindSocket();
-// 		_addPollFd(_listeningSocket);
-// 	}
-// 	catch (std::exception &e) {}
-	
-// 	signal(SIGINT, signal_handler);
-// 	while (loop)
-// 		_runServer();
-// 	for (size_t i = 0; i < _pollfds.size(); i++)
-// 		close(_pollfds[i].fd);
-// }
 
 void Server::_bindSocket()
 {
@@ -251,7 +226,6 @@ void Server::_bindSocket()
     _serverAddr.sin_family = AF_INET;
     _serverAddr.sin_port = htons(_port);
     _serverAddr.sin_addr.s_addr = INADDR_ANY;
-    // memset(&(_serverAddr.sin_zero), 0, sizeof(_serverAddr));
     if (bind(_listeningSocket, (struct sockaddr *)&_serverAddr, sizeof(_serverAddr)) == -1)
         throw std::exception();
     if (listen(_listeningSocket, MAX_CLIENTS) == -1)  // mark the socket as listening and set a max connections (backlog)
@@ -292,7 +266,6 @@ std::map<int, User *> &Server::getUsersMap() {
 User *Server::_findUserByNick(std::string const &nick) const
 {
 	auto it = _usersMap.begin();
-
 	while (it != _usersMap.end())
 	{
 		if (!it->second->getNick().compare(nick))
@@ -377,17 +350,6 @@ Channel *Server::createChannel(std::string const &name)
 	return (channel);
 }
 
-//probably wont need this
-// Channel *Server::createChannel(std::string const &name, std::string const &key)
-// {
-// 	Channel *channel = new Channel;
-// 	channel->setChannelName(name);
-// 	channel->setChannelKey(key);
-// 	channel->setInviteOnly(true);
-// 	addNewChannel(channel);
-// 	return (channel);
-// }
-
 void Server::_broadcastServer(std::string const &msg)
 {
 	std::map<int, User *>::iterator it = _usersMap.begin();
@@ -425,13 +387,19 @@ void Server::_pingUsers()
 	// gone over the 1 minute limit
 	time_t curTime = time(0);
 	std::map<int, User *>::iterator it = _usersMap.begin();
-	std::map<int, User *>::iterator ite = _usersMap.end();
-	while (it != ite)
+	while (it != _usersMap.end())
 	{
 		time_t userTimer = it->second->getPingResponseTimer();
 		if (curTime - userTimer >= 120)
-			std::cout << it->second->getNick() << " timer has gone over 120 secs" << std::endl;
-		it++;
+		{
+			User *user = it->second;
+			std::string const &errorMsg = ERROR(user->getNick(), _name);
+			send(user->getUserInfo().fd, errorMsg.c_str(), errorMsg.size(), 0);
+			++it;
+			deleteUser(user->getUserInfo().fd);
+		}
+		else
+			it++;
 	}
 	_sendPingToUsers();
 }

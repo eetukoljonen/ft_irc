@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 13:34:20 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/06 15:42:52 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/07 11:10:35 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,8 @@ private:
 	unsigned int							_pingMSG;		
 
 	void									_runServer();
+	void									_connectionError(int fd, User *currentUser);
+	void									_sendMessage(int fd, User *currentUser);
 	void									_executeCommands(User *user);
 	void									_bindSocket();
 	void									_createSocket();

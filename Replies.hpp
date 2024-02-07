@@ -127,3 +127,4 @@
 //part
 
 # define PART(user_id, channel, reason) (user_id + " PART #" + channel + " " + reason + "\r\n")
+# define ERROR(client, servername) ("ERROR :Closing link: " + client + " by " + servername + " (Ping timeout)\r\n")
