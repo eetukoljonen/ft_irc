@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 16:55:49 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/29 15:14:44 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 11:59:10 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,10 +20,6 @@ std::vector<std::string> split(std::string const &str, char const &delimeter)
 
 	while (std::getline(iss, token, delimeter))
 		tokens.push_back(token);
-	for (size_t i = 0; i < tokens.size(); i++)
-	{
-		std::cout << tokens[i] << std::endl;
-	}
 	return (tokens);
 }
 

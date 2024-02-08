@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/07 16:22:58 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 12:10:56 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ void Server::_receiveMessage(int index)
 	int nbytes = recv(_pollfds[index].fd, buf, 510, MSG_DONTWAIT);
 	if (nbytes == 0)
 	{
-		std::cout << _pollfds[index].fd << " disconnected" << std::endl;
+		// std::cout << _pollfds[index].fd << " disconnected" << std::endl;
 		close(_pollfds[index].fd);
 		_pollfds.erase(_pollfds.begin() + index);
 	}
@@ -130,6 +130,7 @@ void Server::_executeCommands(User *user)
 		std::string input = user->extractInput();
 		if (input.empty())
 			break ;
+		std::cout << ">> " << input << std::endl;
 		Command cmd(input);
 		CommandExecution::execute(user, this, cmd);
 	}
@@ -150,6 +151,7 @@ void Server::_sendMessage(int fd, User *currentUser)
 		if (!msg.empty())
 		{
 			int bytes = send(fd, msg.c_str(), msg.size(), 0);
+			std::cout << "<< " << msg.substr(0, bytes) << std::endl;
 			if (bytes == -1)
 			{
 				perror("FATAL send: ");
@@ -157,7 +159,7 @@ void Server::_sendMessage(int fd, User *currentUser)
 			}
 			if (static_cast<size_t>(bytes) < msg.size())
 			{
-				msg.substr(bytes);
+				msg = msg.substr(0, bytes);
 				currentUser->addToInputBufferFront(msg);
 			}
 		}
@@ -332,7 +334,7 @@ void Server::deleteUser(int fd)
 	auto it_poll = findPollStructByFd(fd);
 	if (it_map != _usersMap.end() || it_poll != _pollfds.end()) 
 	{
-		std::cout << "found user " << it_map->second->getNick() << std::endl;
+		// std::cout << "found user " << it_map->second->getNick() << std::endl;
 		close(fd);
 		if (it_map != _usersMap.end())
 		{
