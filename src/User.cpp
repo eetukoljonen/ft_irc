@@ -1,4 +1,16 @@
-#include "User.hpp"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   User.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/02/08 15:02:47 by ekoljone          #+#    #+#             */
+/*   Updated: 2024/02/08 15:11:44 by ekoljone         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../headers/User.hpp"
 
 User::User() : _isRegistered(false), _passFlag(false), _pingResponseTimer(time(0)) {}
 
@@ -125,7 +137,7 @@ void User::addToInputBuffer(std::string msg)
 
 std::string const User::extractInput()
 {
-	if (_userInput.empty())
+	if (_userInput.empty() || _userInput[0].find("\n") == std::string::npos)
 	 	return (std::string());
 	std::string const msg = _userInput[0];
 	_userInput.erase(_userInput.begin());

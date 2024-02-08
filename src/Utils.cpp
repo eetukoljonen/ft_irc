@@ -6,20 +6,25 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 16:55:49 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/08 11:59:10 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 15:22:41 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Utils.hpp"
+#include "../headers/Utils.hpp"
 
-std::vector<std::string> split(std::string const &str, char const &delimeter)
+std::vector<std::string> split(std::string const &str, char const &delimeter, bool keepEmptyStrings)
 {
 	std::istringstream			iss(str);
 	std::vector<std::string>	tokens;
 	std::string					token;
 
 	while (std::getline(iss, token, delimeter))
-		tokens.push_back(token);
+	{
+		if (!token.empty())
+			tokens.push_back(token);
+		else if (keepEmptyStrings)
+			tokens.push_back(token);
+	}
 	return (tokens);
 }
 

@@ -6,11 +6,11 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 13:28:00 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/06 13:42:57 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 15:16:03 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Server.hpp"
+#include "../headers/Server.hpp"
 
 int main(int argc, char **argv) 
 {

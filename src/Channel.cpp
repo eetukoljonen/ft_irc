@@ -6,11 +6,11 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/08 11:18:38 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 15:11:30 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Channel.hpp"
+#include "../headers/Channel.hpp"
 
 Channel::Channel() : _userLimit(32), _modes(0) {}
 

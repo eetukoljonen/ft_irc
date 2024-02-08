@@ -6,12 +6,12 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/08 12:04:49 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 15:24:14 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "CommandExecution.hpp"
-#include "Replies.hpp"
+#include "../headers/CommandExecution.hpp"
+#include "../headers/Replies.hpp"
 
 User *CommandExecution::_user;
 Server *CommandExecution::_server;
@@ -56,7 +56,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
     };
     
     int i = 0;
-	std::string commandStr = command.getCommand();
+	std::string const &commandStr = command.getCommand();
     while (i < 17)
     {
         if (!commandStr.compare(Cmds[i]))
@@ -147,10 +147,10 @@ void CommandExecution::_join()
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "JOIN"));
 		return ;
 	}
-	std::vector<std::string> const &channelNames = split(params[0], ',');
+	std::vector<std::string> const &channelNames = split(params[0], ',', false);
 	std::vector<std::string> channelKeys;
 	if (paramSize >= 2)
-		channelKeys = split(params[1], ',');
+		channelKeys = split(params[1], ',', false);
 	size_t channelCount = channelNames.size();
 	size_t keyCount = channelKeys.size();
 	if (keyCount > channelCount)
@@ -808,7 +808,7 @@ void CommandExecution::_privmsg()
 		_user->addToInputBuffer(ERR_NOTEXTTOSEND(userNick));
 	}
 
-	std::vector<std::string> receivers = split(_command.getParams()[0], ',');
+	std::vector<std::string> receivers = split(_command.getParams()[0], ',', false);
 	for (const std::string &receiver : receivers)
 	{
 		if (!receivers.empty() && isValidChannelName(receiver))
@@ -923,7 +923,7 @@ void CommandExecution::_part()
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "PART"));
 		return ;
 	}
-	std::vector<std::string> const &channelNames = split(params[0], ',');
+	std::vector<std::string> const &channelNames = split(params[0], ',', false);
 	std::vector<std::string> partMessages;
 	if (paramSize > 1)
 		partMessages = std::vector<std::string>(params.begin() + 1, params.end());

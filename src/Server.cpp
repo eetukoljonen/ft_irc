@@ -6,12 +6,11 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/08 12:10:56 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 15:11:41 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
-#include "Server.hpp"
+#include "../headers/Server.hpp"
 
 Server::Server() : _name("SocSyncServ"), _port(0), _listeningSocket(0), _pingIntervalTimer(time(0)), _pingMSG(0) {}
 
@@ -79,23 +78,25 @@ void Server::startServer(std::string const &port, std::string const &pw)
 		_runServer();
 }
 
-void Server::_receiveMessage(int index)
+//nc ctrl + d issues
+
+void Server::_receiveMessage(int index, User *currentUser)
 {
 	char buf[510];
 	memset(buf, '\0', 510);
 	int nbytes = recv(_pollfds[index].fd, buf, 510, MSG_DONTWAIT);
 	if (nbytes == 0)
 	{
-		// std::cout << _pollfds[index].fd << " disconnected" << std::endl;
-		close(_pollfds[index].fd);
-		_pollfds.erase(_pollfds.begin() + index);
+		if (currentUser && currentUser->isRegistered())
+			std::cout << user_id(currentUser->getNick(), currentUser->getUser(), currentUser->getIP()) << " disconnected" << std::endl;
+		_connectionError(_pollfds[index].fd, currentUser);
 	}
 	else if (nbytes == -1)
 	{
 		perror("recv");
 	}
 	else
-		_usersMap.find(_pollfds[index].fd)->second->addToInputBuffer(std::string(buf, 0, nbytes));
+		currentUser->addToInputBuffer(std::string(buf, 0, nbytes));
 }
 
 void Server::_acceptClient()
@@ -203,7 +204,7 @@ void Server::_runServer()
 				_acceptClient();
 			else
 			{
-				_receiveMessage(i);
+				_receiveMessage(i, currentUser);
 				_executeCommands(currentUser);
 			}
 		}
