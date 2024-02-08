@@ -38,13 +38,9 @@
 /mode #channelname +o another_user
 /mode #channelname +l 10
 
--Edgecases
-
 /nick collisionTest
 /kick #testChannel user1 Reason1
 /kick #testChannel user2 Reason2
-
 /msg #testChannel
 /quit Goodbye!
 
-todo:

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/07 16:34:51 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 11:21:41 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -794,8 +794,8 @@ void CommandExecution::_privmsg()
 	{
 		if (!receivers.empty() && isValidChannelName(receiver))
 		{
-			Channel* channel = _server->getChannelByName(&receiver[1]);
 			// The receiver is a channel
+			Channel* channel = _server->getChannelByName(&receiver[1]);
 			if (channel) 
 			{
 				if (channel->UserOnChannel(userNick))
