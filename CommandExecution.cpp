@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/08 11:21:41 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/08 12:40:13 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,13 +106,12 @@ void CommandExecution::_joinExistingChannel(Channel *channel, std::string const 
 		_user->addToSendBuffer(ERR_INVITEONLYCHAN(_server->getName(), _user->getNick(), "#" + channel->getChannelName()));
 	else if (channel->getUserCount() >= channel->getUserLimit())
 		_user->addToSendBuffer(ERR_CHANNELISFULL(_server->getName(), _user->getNick(), "#" + channel->getChannelName()));
+	else if (channel->getChannelMode() & MODE_i && channel->isInvited(_user->getNick()))
+		_joinSucces(channel);
+	else if (channel->getChannelMode() & MODE_k && channel->getChannelkey().compare(key))
+		_user->addToSendBuffer(ERR_BADCHANNELKEY(_server->getName(), _user->getNick(), "#" + channel->getChannelName()));
 	else
-	{
-		if (channel->getChannelMode() & MODE_k && channel->getChannelkey().compare(key))
-			_user->addToSendBuffer(ERR_BADCHANNELKEY(_server->getName(), _user->getNick(), "#" + channel->getChannelName()));
-		else
-			_joinSucces(channel);
-	}
+		_joinSucces(channel);
 }
 
 void CommandExecution::_joinNewChannel(std::string const &name)
@@ -340,6 +339,8 @@ void CommandExecution::_userMode()
 void CommandExecution::_removeChannelModes(Channel *channel, std::string const &mode, std::string const &channelName, std::vector<std::string> const &modeParams)
 {
 	size_t paramIndex = 0;
+	std::string modeSTR = "-";
+	std::string paramSTR;
 	for (size_t i = 0; i < mode.size(); i++)
 	{
 		switch (mode[i])
@@ -350,7 +351,7 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 			if (channel->getChannelMode() & MODE_i)
 			{
 				channel->removeChannelMode(MODE_i);
-				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-i"));
+				modeSTR += "i";
 			}
 			break ;
 		case 'l':
@@ -358,7 +359,7 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 				break ;
 			if (channel->getChannelMode() & MODE_l)
 			{
-				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-l"));
+				modeSTR += "l";
 				channel->removeChannelMode(MODE_l);
 				channel->setUserLimit(32);
 			}
@@ -368,7 +369,7 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 				break ;
 			if (channel->getChannelMode() & MODE_t)
 			{
-				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-t"));
+				modeSTR += "t";
 				channel->removeChannelMode(MODE_t);
 			}
 			break;
@@ -377,7 +378,7 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 				break ;
 			if (channel->getChannelMode() & MODE_k)
 			{
-				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-k " + channel->getChannelkey()));
+				modeSTR += "k";
 				channel->removeChannelMode(MODE_k);
 			}
 			break;
@@ -397,8 +398,10 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 				{
 					// removing the op privilages
 					channel->removeOperatorPrivilages(modeParams[paramIndex]);
-					channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "-o " + modeParams[paramIndex]));
-					// _user->addToSendBuffer(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, mode[i]));
+					if (!paramSTR.empty())
+						paramSTR += " ";
+					paramSTR += modeParams[paramIndex];
+					modeSTR += "o";
 				}
 				paramIndex++;
 			}
@@ -408,6 +411,10 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 			break ;
 		}
 	}
+	if (!paramSTR.empty())
+		modeSTR += " ";
+	if (modeSTR.size() > 1)
+		channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, modeSTR + paramSTR));
 }
 
 bool CommandExecution::_checkForOpPrivilages(Channel *channel)
@@ -423,6 +430,8 @@ bool CommandExecution::_checkForOpPrivilages(Channel *channel)
 void CommandExecution::_addChannelModes(Channel *channel, std::string const &mode, std::string const &channelName, std::vector<std::string> const &modeParams)
 {
 	size_t paramIndex = 0;
+	std::string modeSTR = "+";
+	std::string paramSTR;
 	for (size_t i = 0; i < mode.size(); i++)
 	{
 		switch (mode[i])
@@ -433,7 +442,7 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 			if (!(channel->getChannelMode() & MODE_i))
 			{
 				channel->addChannelMode(MODE_i);
-				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+i"));
+				modeSTR += "i";
 			}
 			break ;
 		case 'l':
@@ -448,7 +457,10 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 				catch(const std::exception& e){paramIndex++; break ;}
 				if (userLimit != channel->getUserLimit())
 				{
-					channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+l " + std::to_string(userLimit)));
+					modeSTR += "o";
+					if (!paramSTR.empty())
+						paramSTR += " ";
+					paramSTR += std::to_string(userLimit);
 					channel->addChannelMode(MODE_l);
 					channel->setUserLimit(userLimit);
 				}
@@ -460,7 +472,7 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 				break ;
 			if (!(channel->getChannelMode() & MODE_t))
 			{
-				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+t"));
+				modeSTR += "t";
 				channel->addChannelMode(MODE_t);
 			}
 			break;
@@ -471,7 +483,10 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 				_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE +k"));
 			else if (!(channel->getChannelMode() & MODE_k) || channel->getChannelkey().compare(modeParams[paramIndex]))
 			{
-				channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+k " + modeParams[paramIndex]));
+				modeSTR += "k";
+				if (!paramSTR.empty())
+					paramSTR += " ";
+				paramSTR += modeParams[paramIndex];
 				channel->addChannelMode(MODE_k);
 				channel->setChannelKey(modeParams[paramIndex]);
 			}
@@ -492,7 +507,10 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 				else
 				{
 					channel->addToOperators(modeParams[paramIndex]);
-					channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, "+o " + modeParams[paramIndex]));
+					modeSTR += "o";
+					if (!paramSTR.empty())
+						paramSTR += " ";
+					paramSTR += modeParams[paramIndex];
 				}
 				paramIndex++;
 			}
@@ -502,6 +520,10 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 			break ;
 		}
 	}
+	if (!paramSTR.empty())
+		modeSTR += " ";
+	if (modeSTR.size() > 1)
+		channel->broadcastToChannel(CHANNELMODE(user_id(_user->getNick(), _user->getUser(), _user->getIP()), channelName, modeSTR + paramSTR));
 }
 
 void CommandExecution::_channelMode()
@@ -785,10 +807,7 @@ void CommandExecution::_privmsg()
 	{
 		_user->addToInputBuffer(ERR_NOTEXTTOSEND(userNick));
 	}
-	
-	// std::cout << "receiver is " << receiver << std::endl;
-	// std::cout << "privmsg is " << msg << std::endl;
-	
+
 	std::vector<std::string> receivers = split(_command.getParams()[0], ',');
 	for (const std::string &receiver : receivers)
 	{
