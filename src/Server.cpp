@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/08 15:11:41 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 15:38:15 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,7 +131,7 @@ void Server::_executeCommands(User *user)
 		std::string input = user->extractInput();
 		if (input.empty())
 			break ;
-		std::cout << ">> " << input << std::endl;
+		std::cout << ">> " << truncateLFCR(input) << std::endl;
 		Command cmd(input);
 		CommandExecution::execute(user, this, cmd);
 	}
@@ -152,7 +152,7 @@ void Server::_sendMessage(int fd, User *currentUser)
 		if (!msg.empty())
 		{
 			int bytes = send(fd, msg.c_str(), msg.size(), 0);
-			std::cout << "<< " << msg.substr(0, bytes) << std::endl;
+			std::cout << "<< " << truncateLFCR(msg.substr(0, bytes)) << std::endl;
 			if (bytes == -1)
 			{
 				perror("FATAL send: ");
