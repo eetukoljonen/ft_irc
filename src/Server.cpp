@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/08 15:38:15 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 17:18:35 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,10 +132,17 @@ void Server::_executeCommands(User *user)
 		if (input.empty())
 			break ;
 		std::cout << ">> " << truncateLFCR(input) << std::endl;
-		Command cmd(input);
-		CommandExecution::execute(user, this, cmd);
+		if (!user->isRestricted())
+		{
+			Command cmd(input);
+			CommandExecution::execute(user, this, cmd);
+		}
+		else
+			user->addToSendBuffer(ERR_RESTRICTED(_name));
 	}
 }
+
+//todo for some reason even though irssi gets the message it wont cout it
 
 void Server::_sendMessage(int fd, User *currentUser)
 {

@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/08 15:24:14 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 17:14:23 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 	_server = server;
 	_user = user;
 	_command = command;
-	std::string	Cmds[17] = 
+	std::string	Cmds[16] = 
 	{
 		"JOIN",
 		"NICK",
@@ -42,7 +42,6 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		"PASS",
 		"CAP",
 		"MOTD",
-		"KILL",
 		"MODE",
 		"KICK",
 		"PING",
@@ -57,7 +56,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
     
     int i = 0;
 	std::string const &commandStr = command.getCommand();
-    while (i < 17)
+    while (i < 16)
     {
         if (!commandStr.compare(Cmds[i]))
             break;
@@ -71,17 +70,16 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 3: _pass(); break;
 		case 4: break ; //_cap(); break;
 		case 5: _motd(); break;
-		case 6: _kill(); break;
-		case 7: _mode(); break;
-		case 8: _kick(); break;
-		case 9: _ping(); break;
-		case 10: _pong(); break;
-		case 11: _invite(); break;
-		case 12: _privmsg(); break;
-		case 13: _quit(); break;
-		case 14: _topic(); break;
-		case 15: _part(); break;
-		case 16: _who(); break;
+		case 6: _mode(); break;
+		case 7: _kick(); break;
+		case 8: _ping(); break;
+		case 9: _pong(); break;
+		case 10: _invite(); break;
+		case 11: _privmsg(); break;
+		case 12: _quit(); break;
+		case 13: _topic(); break;
+		case 14: _part(); break;
+		case 15: _who(); break;
 		default: _user->addToSendBuffer(ERR_UNKNOWNCOMMAND(_server->getName(), _user->getNick(), _command.getCommand())); break;
 	}
 }
@@ -591,6 +589,7 @@ void CommandExecution::_pass()
 			&& _command.getParams()[0].compare(_server->getPass()))
 	{
 		_user->addToSendBuffer(ERR_PASSWDMISMATCH(_server->getName(), _user->getNick()));
+		_user->restrictUser();
 		return ;
 	}
 	_user->setPassFlag(true);
@@ -599,36 +598,6 @@ void CommandExecution::_pass()
 		_user->setRegistrationFlag(true);
 		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
 		_motd();
-	}
-}
-
-void    CommandExecution::_kill()
-{
-    User *target;
-	std::string reason;
-
-	if (!_command.getParams().empty())
-	{
-		target = _server->_findUserByNick(_command.getParams()[0]);
-		if (target == nullptr)
-		{
-			_user->addToSendBuffer(ERR_NOSUCHNICK(_server->getName(), _user->getUser(), _command.getParams()[0]));
-			return ;
-		}
-		else
-		{	
-			if (_command.getParams().size() > 1 && !_command.getParams()[1].empty())
-			{
-				if (!_command.getParams()[1].compare(":"))
-					reason = ": default";
-				else
-					reason = _command.getParams()[1];
-			}
-			std::string msg = RPL_KILL(_server->getName(), target->getNick(), reason);
-			if (send(target->getUserInfo().fd, msg.c_str(), msg.size(), 0) < 0)
-				std::cout << "failed to send msg to" << target->getNick() << std::endl;
-			_server->deleteUser(target->getUserInfo().fd);
-		}
 	}
 }
 
@@ -682,10 +651,6 @@ void	CommandExecution::_kick()
 		reason = _command.getParams()[2];
 	else
 		reason = "default";
-	// std::string const &msg = RPL_KICKEDCLIENT(serverName, kickerNick, \
-	// 									channelName, target->getNick(), reason);
-	// if (send(target->getUserInfo().fd, msg.c_str(), msg.size(), 0) < 0)
-   	// 	std::cerr << "Error sending message: " << strerror(errno) << std::endl;
 	channel->broadcastToChannel(RPL_KICKBROADCAST(user_id(kickerNick, userName, _user->getIP()), &channelName[1], targetUser, reason));
 	channel->removeFromChannel(targetUser);
 	_user->removeChannel(channel);
@@ -844,19 +809,20 @@ void CommandExecution::_quit()
 	if (!_usersChannels.empty())
 	{
 		std::vector<Channel *>::iterator	it				= _usersChannels.begin();
-		std::vector<Channel *>::iterator	ite				= _usersChannels.end();
 		std::string msg = ":leaving";
 		if (!_command.getParams().empty())
 			msg	= _command.getParams().at(0);
 		std::string const					&nick			= _user->getNick();
 		std::string const					&user			= _user->getUser();
 		std::string const					&userIP			= _user->getIP();
-		while (it != ite)
+		while (it != _usersChannels.end())
 		{
 			Channel *channel = *it;
+			it++;
 			channel->removeFromChannel(nick);
 			channel->broadcastToChannel(QUIT(user_id(nick, user, userIP), msg));
-			it++;
+			if (channel->getUserCount() <= 0)
+				_server->deleteChannel(channel);
 		}
 	}
 	_server->deleteUser(_user->getUserInfo().fd);

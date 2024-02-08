@@ -6,13 +6,13 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/08 15:02:47 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/08 15:11:44 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 17:05:34 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../headers/User.hpp"
 
-User::User() : _isRegistered(false), _passFlag(false), _pingResponseTimer(time(0)) {}
+User::User() : _isRegistered(false), _passFlag(false), _pingResponseTimer(time(0)), _isRestricted(false) {}
 
 User::User(User const &cpy)
 {
@@ -25,6 +25,7 @@ User::User(User const &cpy)
 	_isRegistered = cpy._isRegistered;
 	_passFlag = cpy._passFlag;
 	_pingResponseTimer = cpy._pingResponseTimer;
+	_isRestricted = cpy._isRestricted;
 }
 
 User::~User(){}
@@ -42,6 +43,7 @@ User &User::operator=(User const &rhs)
 		_isRegistered = rhs._isRegistered;
 		_passFlag = rhs._passFlag;
 		_pingResponseTimer = rhs._pingResponseTimer;
+		_isRestricted = rhs._isRestricted;
     }
     return (*this);
 }
@@ -256,4 +258,14 @@ void User::removeChannel(Channel *channel)
 	std::vector<Channel *>::iterator it = std::find(_channels.begin(), _channels.end(), channel);
 	if (it != _channels.end())
 		_channels.erase(it);
+}
+
+void User::restrictUser()
+{
+	_isRestricted = true;
+}
+
+bool const &User::isRestricted() const
+{
+	return (_isRestricted);
 }
