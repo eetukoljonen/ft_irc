@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/08 17:18:35 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 17:24:54 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,7 +131,7 @@ void Server::_executeCommands(User *user)
 		std::string input = user->extractInput();
 		if (input.empty())
 			break ;
-		std::cout << ">> " << truncateLFCR(input) << std::endl;
+		std::cout << ">> " << input;
 		if (!user->isRestricted())
 		{
 			Command cmd(input);
@@ -141,8 +141,6 @@ void Server::_executeCommands(User *user)
 			user->addToSendBuffer(ERR_RESTRICTED(_name));
 	}
 }
-
-//todo for some reason even though irssi gets the message it wont cout it
 
 void Server::_sendMessage(int fd, User *currentUser)
 {
@@ -159,7 +157,7 @@ void Server::_sendMessage(int fd, User *currentUser)
 		if (!msg.empty())
 		{
 			int bytes = send(fd, msg.c_str(), msg.size(), 0);
-			std::cout << "<< " << truncateLFCR(msg.substr(0, bytes)) << std::endl;
+			std::cout << "<< " << msg.substr(0, bytes);
 			if (bytes == -1)
 			{
 				perror("FATAL send: ");
