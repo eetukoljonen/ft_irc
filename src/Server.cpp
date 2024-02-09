@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/09 16:56:32 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/09 16:57:41 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,9 +119,11 @@ void Server::_receiveMessage(int index, User *currentUser)
 			std::cout << PURPLE << user_id(currentUser->getNick(), currentUser->getUser(), currentUser->getIP()) << " disconnected" << RESET << std::endl;
 		_connectionError(_pollfds[index].fd, currentUser);
 	}
+	else if (nbytes == -1 && errno == 54) 
+		perror("recv");
 	else if (nbytes == -1)
 	{
-		perror("FATAL: ");
+		perror("recv");
 		throw std::exception();
 	}
 	else
@@ -136,7 +138,7 @@ void Server::_acceptClient()
 							&client_info.addrLen);
 	if (client_info.fd == -1 || fcntl(client_info.fd, F_SETFL, O_NONBLOCK) == -1)
 	{
-		perror("FATAL: ");
+		perror("accept");
 		throw std::exception();
 	}
 	else if (client_info.fd)
@@ -200,7 +202,7 @@ void Server::_sendMessage(int fd, User *currentUser)
 			std::cout << GREEN << "<< " << msg.substr(0, bytes) << RESET;
 			if (bytes == -1)
 			{
-				perror("FATAL: ");
+				perror("send");
 				throw std::exception();
 			}
 			if (static_cast<size_t>(bytes) < msg.size())
@@ -242,7 +244,7 @@ void Server::_runServer()
 		nfds_t numFds = static_cast<nfds_t>(_pollfds.size());
 		if (poll(&(_pollfds[0]), numFds, 0) == -1)
 		{
-			perror("FATAL: ");
+			perror("poll");
 			throw std::exception();
 		}
 		size_t i = 0;
@@ -288,12 +290,12 @@ void Server::_bindSocket()
     _serverAddr.sin_addr.s_addr = INADDR_ANY;
     if (bind(_listeningSocket, (struct sockaddr *)&_serverAddr, sizeof(_serverAddr)) == -1)
     {
-		perror("FATAL: ");
+		perror("bind");
 		throw std::exception();
 	}
     if (listen(_listeningSocket, MAX_CLIENTS) == -1)  // mark the socket as listening and set a max connections (backlog)
     {
-		perror("FATAL: ");
+		perror("listen");
 		throw std::exception();
 	}
 	_host = inet_ntoa( _serverAddr.sin_addr);
@@ -304,12 +306,12 @@ void Server::_createSocket()
 	_listeningSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_listeningSocket == -1)
 	{
-		perror("FATAL: ");
+		perror("socket");
 		throw std::exception();
 	}
 	if (fcntl(_listeningSocket, F_SETFL, O_NONBLOCK) == -1)
     {
-		perror("FATAL: ");
+		perror("fcntl");
 		throw std::exception();
 	}
 }

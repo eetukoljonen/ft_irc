@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   User.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/08 15:02:47 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/08 17:05:34 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/09 16:39:25 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,48 +63,6 @@ void User::addToSendBuffer(std::string const &msg)
 {
 	_sendBuffer.push_back(msg);
 }
-
-// t_command *User::extractCommand()
-// {
-// 	std::cout << "hi" << std::endl;
-// 	if (!_userInput.empty())
-// 		std::cout << "inside userinput = " << _userInput[0] << std::endl;
-// 	if (_userInput.empty() || _userInput[0].find("\n") == std::string::npos)
-// 		return (NULL);
-// 	std::vector<std::string> splitted_input = split(extractInput(), ' ');
-// 	t_command *command = new t_command;
-// 	size_t size = splitted_input.size();
-// 	for (size_t i = 0; i < size; i++)
-// 	{
-// 		while (i < size && splitted_input[i].empty())
-// 			i++;
-// 		if (command->prefix.empty()
-// 			&& command->command.empty()
-// 			&& command->params.empty()
-// 			&& splitted_input[i].at(0) == ':')
-// 			command->prefix = splitted_input[i];
-// 		else if (command->command.empty()
-// 				&& command->params.empty())
-// 			command->command = splitted_input[i];
-// 		else if (!command->command.empty()
-// 				&& splitted_input[i].at(0) == ':')
-// 		{
-// 			std::string msg;
-// 			while (i < size)
-// 			{
-// 				msg.append(splitted_input[i++]);
-// 				if (i < size)
-// 					msg.append(" ");
-// 			}
-// 			command->params.push_back(msg);
-// 		}
-// 		else
-// 			command->params.push_back(splitted_input[i]);
-
-// 	}
-// 	printCommand(command);
-// 	return (command);
-// }
 
 void appendInput(std::vector<std::string> &buf, std::string const &str)
 {
