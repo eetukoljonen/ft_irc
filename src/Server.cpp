@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/09 13:56:53 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/09 16:54:21 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,21 +56,47 @@ static void	signal_handler(int signal)
 	loop = false;
 }
 
+void Server::_printStart()
+{
+	std::cout << GREEN	<<  "  ________________  _________            \n"
+							" /   _____\\_____  \\ \\_   ___ \\           \n"
+							" \\_____  \\ /   |   \\/    \\  \\/           \n"
+							" /        /    |    \\     \\____          \n"
+							" /_______  \\_______  /\\______  /          \n"
+							"          \\/        \\/        \\/           \n"
+							" _____________.___._______  _________   \n"
+							"/   _____\\__  |   |\\      \\ \\_   ___ \\  \n"
+							"\\_____  \\ /   |   |/   |   \\/    \\  \\/  \n"
+							"/        \\\\____   /    |    \\     \\____ \n"
+							"/_______  // ______\\____|__  /\\______  / \n"
+							"         \\/ \\/              \\/        \\/  \n"
+							"________________________________   ____\n"
+							"/   _____\\_   _____\\______   \\   \\ /   /\n"
+							"\\_____  \\ |    __)_ |       _/\\   Y   / \n"
+							"/        \\|        \\|    |   \\ \\     /  \n"
+							"/_______  /_______  /|____|_  /  \\___/   \n"
+							"        \\/        \\/        \\/           \n" << RESET;
+	std::cout	<< YELLOW << "is starting..." << RESET << std::endl
+				<< "Connect with Irssi:		/connect localhost " << _port << " " << _pw << std::endl
+				<< "Connect with Netcat		nc 127.0.0.1 " << _port << " " << _pw << std::endl;
+}
+
 void Server::startServer(std::string const &port, std::string const &pw)
 {
 	if (pw.size() < 1 || pw.size() > 10)
 	{
-		std::cerr << "invalid password, password has to be between 1 - 10 characters" << std::endl;
+		std::cerr << RED << "invalid password, password has to be between 1 - 10 characters" << RESET << std::endl;
 		return ;
 	}
 	_pw = pw;
 	try{_port = std::stoi(port);}
-	catch(const std::exception& e){std::cerr << "invalid port" << std::endl; return ;}
+	catch(const std::exception& e){std::cerr << RED << "invalid port" << RESET << std::endl; return ;}
 	if (_port < 1 || _port > 65535)
 	{
-		std::cerr << "invalid port" << std::endl;
+		std::cerr << RED << "invalid port" << RESET << std::endl;
 		return ;
 	}
+	_printStart();
 	signal(SIGINT, signal_handler);
 	try 
 	{
@@ -90,7 +116,7 @@ void Server::_receiveMessage(int index, User *currentUser)
 	if (nbytes == 0)
 	{
 		if (currentUser && currentUser->isRegistered())
-			std::cout << user_id(currentUser->getNick(), currentUser->getUser(), currentUser->getIP()) << " disconnected" << std::endl;
+			std::cout << PURPLE << user_id(currentUser->getNick(), currentUser->getUser(), currentUser->getIP()) << " disconnected" << RESET << std::endl;
 		_connectionError(_pollfds[index].fd, currentUser);
 	}
 	else if (nbytes == -1)
@@ -119,13 +145,13 @@ void Server::_acceptClient()
 		{
 			std::string const errormsg = "ERROR: Server is full. Please try again later.\r\n";
 			send(client_info.fd, errormsg.c_str(), 49, 0);
-			std:: cout << "<< " << errormsg;
+			std:: cout << RED <<  "<< " << errormsg << RESET;
 			return ;
 		}
 		User *newUser = new User;
 		newUser->setClientInfo(client_info);
 		_addPollFd(client_info.fd);
-		std::cout << "new connection: " << std::string(inet_ntoa(newUser->getUserInfo().addr.sin_addr), 0, INET_ADDRSTRLEN + 1) << std::endl;
+		std::cout << PURPLE << "New connection!" << RESET << std::endl;
 		_usersMap[client_info.fd] = newUser;
 		newUser->setIP(inet_ntoa(client_info.addr.sin_addr));
 	}
@@ -138,7 +164,7 @@ void Server::_executeCommands(User *user)
 		std::string input = user->extractInput();
 		if (input.empty())
 			break ;
-		std::cout << ">> " << input;
+		std::cout << YELLOW << ">> " << input << RESET;
 		if (!user->isRestricted())
 		{
 			Command cmd(input);
@@ -147,6 +173,13 @@ void Server::_executeCommands(User *user)
 		else
 			user->addToSendBuffer(ERR_RESTRICTED(_name));
 	}
+}
+
+void Server::_killUser(User *currentUser, std::string const &reason)
+{
+	send(currentUser->getUserInfo().fd, reason.c_str(), reason.size(), 0);
+	std::cout << RED <<  "<< " << reason << RESET;
+	deleteUser(currentUser->getUserInfo().fd);
 }
 
 void Server::_sendMessage(int fd, User *currentUser)
@@ -164,7 +197,7 @@ void Server::_sendMessage(int fd, User *currentUser)
 		if (!msg.empty())
 		{
 			int bytes = send(fd, msg.c_str(), msg.size(), 0);
-			std::cout << "<< " << msg.substr(0, bytes);
+			std::cout << GREEN << "<< " << msg.substr(0, bytes) << RESET;
 			if (bytes == -1)
 			{
 				perror("FATAL: ");
@@ -175,6 +208,11 @@ void Server::_sendMessage(int fd, User *currentUser)
 				msg = msg.substr(0, bytes);
 				currentUser->addToInputBufferFront(msg);
 			}
+		}
+		if (currentUser->isRestricted())
+		{
+			_killUser(currentUser, ERROR(currentUser->getNick(), _name, "Connection restricted"));
+			return ;
 		}
 	}
 }
@@ -202,7 +240,6 @@ void Server::_runServer()
 	while (loop)
 	{
 		nfds_t numFds = static_cast<nfds_t>(_pollfds.size());
-		// int numEvents = poll(&(_pollfds[0]), numFds, 0);
 		if (poll(&(_pollfds[0]), numFds, 0) == -1)
 		{
 			perror("FATAL: ");
@@ -362,7 +399,6 @@ void Server::deleteUser(int fd)
 	auto it_poll = findPollStructByFd(fd);
 	if (it_map != _usersMap.end() || it_poll != _pollfds.end()) 
 	{
-		// std::cout << "found user " << it_map->second->getNick() << std::endl;
 		close(fd);
 		if (it_map != _usersMap.end())
 		{
@@ -373,8 +409,6 @@ void Server::deleteUser(int fd)
 		if (it_poll != _pollfds.end())
 			_pollfds.erase(it_poll);
 	}
-	else 
-		std::cout << "User not found in map" << std::endl;
 }
 
 Channel *Server::createChannel(std::string const &name)
@@ -428,7 +462,7 @@ void Server::_pingUsers()
 		if (curTime - userTimer >= 120)
 		{
 			User *user = it->second;
-			std::string const &errorMsg = ERROR(user->getNick(), _name);
+			std::string const &errorMsg = ERROR(user->getNick(), _name, "Ping timeout");
 			send(user->getUserInfo().fd, errorMsg.c_str(), errorMsg.size(), 0);
 			++it;
 			deleteUser(user->getUserInfo().fd);
