@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.hpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:01 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/29 12:40:23 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/08 16:33:40 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,22 +52,30 @@ private:
 	static void		_pass();
 	static void		_userF();
 	// static void		_cap();
-	static void		_kill();
 	static void		_kick();
 	//mode
 	static void		_mode();
 	static void		_userMode();
 	static void		_channelMode();
+	static void		_removeChannelModes(Channel *channel, std::string const &mode, std::string const &channelName, std::vector<std::string> const &modeParams);
+	static void		_addChannelModes(Channel *channel, std::string const &mode, std::string const &channelName, std::vector<std::string> const &modeParams);
+	static bool		_checkForOpPrivilages(Channel *channel);
 	// ping pong
 	static void		_ping();
 	static void		_pong();
 
 	//invite
 	static void		_invite();
-
+	//privmsg
 	static void		_privmsg();
-	
-};
+	//quit
+	static void		_quit();
+	//topic
+	static void		_topic();
+	//part
+	static void		_part();
+	static void		_who();
+	};
 
 
 #endif

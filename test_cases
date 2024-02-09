@@ -1,0 +1,50 @@
+/connect 127.0.0.1 123 asd
+/nick JouniMarkus
+/user Lokaali
+/join qwe
+/msg atuliara Yo wadap homes
+/msg #qwe Hi people
+
+- Operator Commands (assuming you have operator privileges)
+
+/kick #qwe JouniMarkus Reason for kick
+/mode #qwe +i
+/mode #qwe -i
+/mode #qwe +t
+/mode #qwe -t
+/mode #qwe +k asd
+/mode #qwe -k asd
+/mode #qwe +o JouniMarkus
+/mode #qwe -o JouniMarkus
+/mode #qwe +l 23
+/mode #qwe -l 23
+/invite JouniMarkus #qwe
+/topic #qwe Turtles
+
+- Errors
+
+/connect 127.0.0.1 999 wrong_password
+/nick existing_nickname
+/join #nonexistentchannel
+/msg non_existing_user Your private message
+/msg #otherchannel Message to channel
+
+- Operator Commands without having operator privileges
+
+/kick #qwe some_user Reason for kick
+/invite some_user #otherchannel
+/topic #otherchannel New topic for the channel
+/mode #channelname +i
+/mode #channelname +o another_user
+/mode #channelname +l 10
+
+-Edgecases
+
+/nick collisionTest
+/kick #testChannel user1 Reason1
+/kick #testChannel user2 Reason2
+
+/msg #testChannel
+/quit Goodbye!
+
+todo:
