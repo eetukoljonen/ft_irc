@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:01 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/07 15:24:18 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/08 16:33:40 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,6 @@ private:
 	static void		_pass();
 	static void		_userF();
 	// static void		_cap();
-	static void		_kill();
 	static void		_kick();
 	//mode
 	static void		_mode();

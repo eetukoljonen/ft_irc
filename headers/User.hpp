@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/06 16:32:13 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/09 12:43:30 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ public:
 	//bools
 	bool const					&isRegistered() const;
 	bool const					&isPassCorrect() const;
+	bool const					&isRestricted() const;
 	//getters
 	std::string const			&getNick();
 	std::string const			&getUser();
@@ -76,6 +77,7 @@ public:
 	void						addNewChannel(Channel *channel);
 	void						setClientInfo(t_client const &info);
 	void						removeChannel(Channel *channel);
+	void						restrictUser();
 private:
 	std::string					_nick;
 	std::string					_user;
@@ -89,6 +91,7 @@ private:
 	bool						_passFlag;
 	time_t						_pingResponseTimer;
 	std::string					_pongRespone;
+	bool						_isRestricted;
 };
 
 #endif

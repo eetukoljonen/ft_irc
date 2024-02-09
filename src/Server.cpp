@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/09 11:30:04 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/09 13:59:37 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -409,15 +409,4 @@ void Server::_pingUsers()
 			it++;
 	}
 	_sendPingToUsers();
-}
-
-void Server::deleteChannel(Channel *channel)
-{
-	std::map<std::string, Channel *>::iterator it = _channelMap.find(channel->getChannelName());
-	if (it != _channelMap.end())
-	{
-		if (it->second)
-			delete it->second;
-		_channelMap.erase(it);
-	}
 }

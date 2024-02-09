@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 13:34:20 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/08 11:41:27 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/09 13:59:07 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,5 +87,3 @@ private:
 	Server(Server const &cpy);
 	Server									&operator=(Server const &rhs);
 };
-
-#endif

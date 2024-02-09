@@ -22,7 +22,6 @@
 # define ERR_NICKNAMEINUSE(server, nick) (":" + server + " 433 * " + nick + " :Nickname is already in use.\r\n")
 # define ERR_NOSUCHNICK(servername, client, nickname) (":" + servername + " 401 " + client + " " + nickname + " :No such nick/channel.\r\n")
 # define ERR_NICKCOLLISION(server, nick) (":" + server + " 436 " + nick + " :Nickname collision\r\n")
-# define ERR_RESTRICTED(server, nick) (":" + server + " 484 " + nick + " :Your connection is restricted and cannot use this nickname\r\n")
 # define ERR_NOTREGISTERED(servername)(":" + servername + " 451 :Register first.\r\n")
 # define ERR_ALREADYREGISTERED(servername) (":" + servername + " 462 :Unauthorized command (already registered)\r\n")
 
@@ -85,3 +84,4 @@
 # define ERROR(client, servername) ("ERROR :Closing link: " + client + " by " + servername + " (Ping timeout)\r\n")
 # define RPL_ENDOFWHO(servername, client, target) (":" + servername + " 315 " + client + " " + target + " :End of /WHO list.\r\n")
 # define RPL_ENDOFBANLIST(servername, client, target) (":" + servername + " 368 " + client + " " + target + " :End of Channel Ban List\r\n")
+# define ERR_RESTRICTED(servername) (":" + servername + " 484 * :Your connection is restricted!\r\n")

@@ -1,25 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   Utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/06 13:28:00 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/06 13:42:57 by ekoljone         ###   ########.fr       */
+/*   Created: 2024/01/18 16:55:53 by ekoljone          #+#    #+#             */
+/*   Updated: 2024/02/09 11:01:45 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Server.hpp"
+#ifndef __UTILS_HPP__
+#define __UTILS_HPP__
 
-int main(int argc, char **argv) 
-{
-	if (argc != 3)
-	{
-		std::cerr << "try ./ircserv <port> <password>" << std::endl;
-		return (1);
-	}
-		Server server;
-		server.startServer(argv[1], argv[2]);
-		return (0);
-}
+#include <vector>
+#include <iostream>
+#include <sstream>
+#include <regex>
+
+std::vector<std::string>	split(std::string const &str, char const &delimeter, bool keepEmptyStrings);
+std::string					truncateLFCR(std::string const &str);
+bool						checkIrcPattern(std::string const &str);
+std::string					str_toupper(std::string const &str);
+
+#endif
