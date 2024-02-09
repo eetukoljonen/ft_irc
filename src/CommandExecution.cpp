@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/09 16:28:45 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/09 16:54:56 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,6 +208,12 @@ void CommandExecution::_nick()
 {
 	if (!_isValidNick())
 		return ;
+	if (!_user->isPassCorrect())
+	{
+		_user->addToSendBuffer(ERR_NOTREGISTERED(_server->getName()));
+		_user->restrictUser();
+		return ;
+	}
 	std::string const	oldNick = _user->getNick();
 	std::string	const	newNick = _command.getParams().at(0).substr(0, 15);
 	_user->setNick(newNick);
@@ -281,6 +287,12 @@ void CommandExecution::_userF()
 	if (_user->isRegistered())
 	{
 		_user->addToSendBuffer(ERR_ALREADYREGISTERED(_server->getName()));
+		return ;
+	}
+	if (!_user->isPassCorrect())
+	{
+		_user->addToSendBuffer(ERR_NOTREGISTERED(_server->getName()));
+		_user->restrictUser();
 		return ;
 	}
 	std::vector<std::string> const &parameters = _command.getParams();
@@ -583,6 +595,7 @@ void CommandExecution::_pass()
 	if (_command.getParams().empty())
 	{
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "PASS"));
+		_user->restrictUser();
 		return  ;
 	}
 	else if (!_command.getParams().empty()
@@ -593,12 +606,12 @@ void CommandExecution::_pass()
 		return ;
 	}
 	_user->setPassFlag(true);
-	if (!_user->isRegistered() && !_user->getNick().empty() && !_user->getUser().empty())
-	{
-		_user->setRegistrationFlag(true);
-		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
-		_motd();
-	}
+	// if (!_user->isRegistered() && !_user->getNick().empty() && !_user->getUser().empty())
+	// {
+	// 	_user->setRegistrationFlag(true);
+	// 	_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
+	// 	_motd();
+	// }
 }
 
 void	CommandExecution::_kick()
@@ -801,7 +814,6 @@ void CommandExecution::_privmsg()
 		{
 			// The receiver is a user
 			User* recipient = _server->_findUserByNick(receiver);
-			// std::cout << "user is " << recipient->getNick() << std::endl;
 			if (recipient)
 				recipient->addToSendBuffer(RPL_PRIVMSG(user_id(userNick, userName, _user->getIP()), receiver, msg));
 			else

@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 13:34:20 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/09 16:29:05 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/09 16:55:38 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,12 @@
 #define __SERVER_HPP__
 
 # define MAX_CLIENTS 32
+
+#define RESET   "\033[0m"
+#define RED     "\033[31m"     
+#define GREEN   "\033[32m"  
+#define YELLOW  "\033[33m"  
+#define PURPLE  "\033[35m"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -82,7 +88,9 @@ private:
 	void									_broadcastServer(std::string const &msg);
 	void									_pingUsers();
 	void									_sendPingToUsers();
-
+	void									_killUser(User *currentUser, std::string const &reason);
+	void									_printStart();
+	
 	Server(Server const &cpy);
 	Server									&operator=(Server const &rhs);
 };
