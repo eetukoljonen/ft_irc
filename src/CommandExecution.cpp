@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/09 13:56:52 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/09 16:28:45 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 1: _nick(); break;
 		case 2: _userF(); break;
 		case 3: _pass(); break;
-		case 4: break ; //_cap(); break;
+		case 4: break ; //_cap(); break to ignore 
 		case 5: _motd(); break;
 		case 6: _mode(); break;
 		case 7: _kick(); break;
@@ -618,6 +618,7 @@ void	CommandExecution::_kick()
     	_user->addToSendBuffer(ERR_NEEDMOREPARAMS(serverName, kickerNick, command));
     	return;
 	}
+	/* Loop over all the channels and targetUsers */
 	std::vector<std::string> channelNames = split(_command.getParams()[0], ',', false);
 	std::vector<std::string> targetUsers = split(_command.getParams()[1], ',', false);
 	for (const std::string &channelName : channelNames)
@@ -778,7 +779,7 @@ void CommandExecution::_privmsg()
 	{
 		_user->addToInputBuffer(ERR_NOTEXTTOSEND(userNick));
 	}
-
+	//loop over all the receivers
 	std::vector<std::string> receivers = split(_command.getParams()[0], ',', false);
 	for (const std::string &receiver : receivers)
 	{

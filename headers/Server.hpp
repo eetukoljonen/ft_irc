@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 13:34:20 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/08 14:47:16 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/09 16:29:05 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,6 @@ class Server
 public:
 	Server();
 	~Server();
-	// Server(int port, std::string pw, std::string name = "Garbaggio");
 	void									startServer(std::string const &port, std::string const &pw);
 	// getters
 	std::string const						&getName() const;
