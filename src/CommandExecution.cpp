@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/09 13:56:52 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/09 17:00:12 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 1: _nick(); break;
 		case 2: _userF(); break;
 		case 3: _pass(); break;
-		case 4: break ; //_cap(); break;
+		case 4: break ; //_cap(); break to ignore 
 		case 5: _motd(); break;
 		case 6: _mode(); break;
 		case 7: _kick(); break;
@@ -208,6 +208,12 @@ void CommandExecution::_nick()
 {
 	if (!_isValidNick())
 		return ;
+	if (!_user->isPassCorrect())
+	{
+		_user->addToSendBuffer(ERR_NOTREGISTERED(_server->getName()));
+		_user->restrictUser();
+		return ;
+	}
 	std::string const	oldNick = _user->getNick();
 	std::string	const	newNick = _command.getParams().at(0).substr(0, 15);
 	_user->setNick(newNick);
@@ -281,6 +287,12 @@ void CommandExecution::_userF()
 	if (_user->isRegistered())
 	{
 		_user->addToSendBuffer(ERR_ALREADYREGISTERED(_server->getName()));
+		return ;
+	}
+	if (!_user->isPassCorrect())
+	{
+		_user->addToSendBuffer(ERR_NOTREGISTERED(_server->getName()));
+		_user->restrictUser();
 		return ;
 	}
 	std::vector<std::string> const &parameters = _command.getParams();
@@ -583,6 +595,7 @@ void CommandExecution::_pass()
 	if (_command.getParams().empty())
 	{
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "PASS"));
+		_user->restrictUser();
 		return  ;
 	}
 	else if (!_command.getParams().empty()
@@ -593,12 +606,12 @@ void CommandExecution::_pass()
 		return ;
 	}
 	_user->setPassFlag(true);
-	if (!_user->isRegistered() && !_user->getNick().empty() && !_user->getUser().empty())
-	{
-		_user->setRegistrationFlag(true);
-		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
-		_motd();
-	}
+	// if (!_user->isRegistered() && !_user->getNick().empty() && !_user->getUser().empty())
+	// {
+	// 	_user->setRegistrationFlag(true);
+	// 	_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
+	// 	_motd();
+	// }
 }
 
 void	CommandExecution::_kick()
@@ -618,6 +631,7 @@ void	CommandExecution::_kick()
     	_user->addToSendBuffer(ERR_NEEDMOREPARAMS(serverName, kickerNick, command));
     	return;
 	}
+	/* Loop over all the channels and targetUsers */
 	std::vector<std::string> channelNames = split(_command.getParams()[0], ',', false);
 	std::vector<std::string> targetUsers = split(_command.getParams()[1], ',', false);
 	for (const std::string &channelName : channelNames)
@@ -778,7 +792,7 @@ void CommandExecution::_privmsg()
 	{
 		_user->addToInputBuffer(ERR_NOTEXTTOSEND(userNick));
 	}
-
+	//loop over all the receivers
 	std::vector<std::string> receivers = split(_command.getParams()[0], ',', false);
 	for (const std::string &receiver : receivers)
 	{
@@ -800,7 +814,6 @@ void CommandExecution::_privmsg()
 		{
 			// The receiver is a user
 			User* recipient = _server->_findUserByNick(receiver);
-			// std::cout << "user is " << recipient->getNick() << std::endl;
 			if (recipient)
 				recipient->addToSendBuffer(RPL_PRIVMSG(user_id(userNick, userName, _user->getIP()), receiver, msg));
 			else

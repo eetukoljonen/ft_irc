@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.hpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:01 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/08 16:33:40 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/09 17:00:02 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,39 +40,27 @@ private:
 	static Command	_command;
 
 	static void		_motd();
-	//join
 	static void		_join();
 	static void		_joinExistingChannel(Channel *channel, std::string const &key);
 	static void		_joinNewChannel(std::string const &name);
 	static void		_joinSucces(Channel *channel);
-	// nick
 	static void		_nick();
 	static bool 	_isValidNick();
-
 	static void		_pass();
 	static void		_userF();
-	// static void		_cap();
 	static void		_kick();
-	//mode
 	static void		_mode();
 	static void		_userMode();
 	static void		_channelMode();
 	static void		_removeChannelModes(Channel *channel, std::string const &mode, std::string const &channelName, std::vector<std::string> const &modeParams);
 	static void		_addChannelModes(Channel *channel, std::string const &mode, std::string const &channelName, std::vector<std::string> const &modeParams);
 	static bool		_checkForOpPrivilages(Channel *channel);
-	// ping pong
 	static void		_ping();
 	static void		_pong();
-
-	//invite
 	static void		_invite();
-	//privmsg
 	static void		_privmsg();
-	//quit
 	static void		_quit();
-	//topic
 	static void		_topic();
-	//part
 	static void		_part();
 	static void		_who();
 	};

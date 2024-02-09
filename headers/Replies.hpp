@@ -81,7 +81,7 @@
 
 /* PART */
 # define PART(user_id, channel, reason) (user_id + " PART " + channel + " " + reason + "\r\n")
-# define ERROR(client, servername) ("ERROR :Closing link: " + client + " by " + servername + " (Ping timeout)\r\n")
+# define ERROR(client, servername, msg) ("ERROR :Closing link: " + client + " by " + servername + " (" + msg + ")\r\n")
 # define RPL_ENDOFWHO(servername, client, target) (":" + servername + " 315 " + client + " " + target + " :End of /WHO list.\r\n")
 # define RPL_ENDOFBANLIST(servername, client, target) (":" + servername + " 368 " + client + " " + target + " :End of Channel Ban List\r\n")
 # define ERR_RESTRICTED(servername) (":" + servername + " 484 * :Your connection is restricted!\r\n")
