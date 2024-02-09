@@ -44,3 +44,9 @@
 /msg #testChannel
 /quit Goodbye!
 
+
+
+
+testing:
+
+-check when pw wrong that the nick who tried to connect is removed.

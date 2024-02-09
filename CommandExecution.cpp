@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/08 12:40:13 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/08 15:56:56 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -649,48 +649,50 @@ void	CommandExecution::_kick()
     	_user->addToSendBuffer(ERR_NEEDMOREPARAMS(serverName, kickerNick, command));
     	return;
 	}
-	std::string const &channelName = _command.getParams()[0];
-	std::string const &targetUser = _command.getParams()[1];
-	Channel *channel = _server->getChannelByName(&channelName[1]);
-	// User *target = channel->getUser(targetUser);
-	std::string reason;
-	/* Check channel exists */
-	if (channel == nullptr || !isValidChannelName(channelName))
+	std::vector<std::string> channelNames = split(_command.getParams()[0], ',');
+	std::vector<std::string> targetUsers = split(_command.getParams()[1], ',');
+	for (const std::string &channelName : channelNames)
 	{
-		_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, channelName));
-		return ;
+		Channel *channel = _server->getChannelByName(&channelName[1]);
+		/* Check channel exists */
+		if (channel == nullptr || !isValidChannelName(channelName))
+		{
+			_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, channelName));
+		}
+		else if (!channel->isOperator(kickerNick))
+		{
+			_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(serverName, kickerNick, channelName));
+		}
+		/* Check that kicker is on channel */
+		else if (!channel->UserOnChannel(kickerNick))
+		{
+			_user->addToSendBuffer(ERR_NOTONCHANNEL(serverName, userName, channelName));
+		}
+		else
+		{
+			for (const std::string &targetUser : targetUsers)
+			{
+				/* Check that kicked is on channel */
+				if (!channel->UserOnChannel(targetUser))
+				{
+					_user->addToSendBuffer(ERR_USERNOTONCHANNEL(serverName, kickerNick, targetUser, channelName));
+					break ;
+				}
+				std::string reason;
+				if (_command.getParams().size() > 2 && _command.getParams()[2].compare(":"))
+					reason = _command.getParams()[2];
+				else
+					reason = "default";
+				channel->broadcastToChannel(RPL_KICKBROADCAST(user_id(kickerNick, userName, _user->getIP()), channelName, targetUser, reason));
+				channel->removeFromChannel(targetUser);
+				_user->removeChannel(channel);
+				if (channel->getUserCount() <= 0)
+					_server->deleteChannel(channel);
+			}
+			
+		}
+			
 	}
-		/* Check user privileges */
-	if (!channel->isOperator(kickerNick))
-	{
-		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(serverName, channelName, channelName));
-		return ;
-	}
-	/* Check that kicker is on channel */
-	if (!channel->UserOnChannel(kickerNick))
-	{
-		_user->addToSendBuffer(ERR_NOTONCHANNEL(serverName, userName, channelName));
-		return ;
-	}
-	/* Check that kicked is on channel */
-	if (!channel->UserOnChannel(targetUser))
-	{
-		_user->addToSendBuffer(ERR_USERNOTONCHANNEL(serverName, kickerNick, targetUser, channelName));
-		return ;
-	}
-	if (_command.getParams().size() > 2 && _command.getParams()[2].compare(":"))
-		reason = _command.getParams()[2];
-	else
-		reason = "default";
-	// std::string const &msg = RPL_KICKEDCLIENT(serverName, kickerNick, \
-	// 									channelName, target->getNick(), reason);
-	// if (send(target->getUserInfo().fd, msg.c_str(), msg.size(), 0) < 0)
-   	// 	std::cerr << "Error sending message: " << strerror(errno) << std::endl;
-	channel->broadcastToChannel(RPL_KICKBROADCAST(user_id(kickerNick, userName, _user->getIP()), &channelName[1], targetUser, reason));
-	channel->removeFromChannel(targetUser);
-	_user->removeChannel(channel);
-	if (channel->getUserCount() <= 0)
-		_server->deleteChannel(channel);
 }
 
 void	CommandExecution::_invite()
