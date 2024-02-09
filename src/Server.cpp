@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/09 16:54:21 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/09 16:56:32 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -463,6 +463,7 @@ void Server::_pingUsers()
 		{
 			User *user = it->second;
 			std::string const &errorMsg = ERROR(user->getNick(), _name, "Ping timeout");
+			std::cout << RED << "<< " << errorMsg << RESET << std::endl;
 			send(user->getUserInfo().fd, errorMsg.c_str(), errorMsg.size(), 0);
 			++it;
 			deleteUser(user->getUserInfo().fd);
