@@ -3,15 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/09 13:59:37 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/09 13:56:53 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
-#include "Server.hpp"
+#include "../headers/Server.hpp"
 
 Server::Server() : _name("SocSyncServ"), _port(0), _listeningSocket(0), _pingIntervalTimer(time(0)), _pingMSG(0) {}
 
@@ -59,6 +58,11 @@ static void	signal_handler(int signal)
 
 void Server::startServer(std::string const &port, std::string const &pw)
 {
+	if (pw.size() < 1 || pw.size() > 10)
+	{
+		std::cerr << "invalid password, password has to be between 1 - 10 characters" << std::endl;
+		return ;
+	}
 	_pw = pw;
 	try{_port = std::stoi(port);}
 	catch(const std::exception& e){std::cerr << "invalid port" << std::endl; return ;}
@@ -67,35 +71,35 @@ void Server::startServer(std::string const &port, std::string const &pw)
 		std::cerr << "invalid port" << std::endl;
 		return ;
 	}
+	signal(SIGINT, signal_handler);
 	try 
 	{
 		_createSocket();
 		_bindSocket();
 		_addPollFd(_listeningSocket);
-	}
-	catch (std::exception &e) {}
-	signal(SIGINT, signal_handler);
-	while (loop)
 		_runServer();
+	}
+	catch (std::exception &e){}
 }
 
-void Server::_receiveMessage(int index)
+void Server::_receiveMessage(int index, User *currentUser)
 {
 	char buf[510];
 	memset(buf, '\0', 510);
 	int nbytes = recv(_pollfds[index].fd, buf, 510, MSG_DONTWAIT);
 	if (nbytes == 0)
 	{
-		// std::cout << _pollfds[index].fd << " disconnected" << std::endl;
-		close(_pollfds[index].fd);
-		_pollfds.erase(_pollfds.begin() + index);
+		if (currentUser && currentUser->isRegistered())
+			std::cout << user_id(currentUser->getNick(), currentUser->getUser(), currentUser->getIP()) << " disconnected" << std::endl;
+		_connectionError(_pollfds[index].fd, currentUser);
 	}
 	else if (nbytes == -1)
 	{
-		perror("recv");
+		perror("FATAL: ");
+		throw std::exception();
 	}
 	else
-		_usersMap.find(_pollfds[index].fd)->second->addToInputBuffer(std::string(buf, 0, nbytes));
+		currentUser->addToInputBuffer(std::string(buf, 0, nbytes));
 }
 
 void Server::_acceptClient()
@@ -104,14 +108,18 @@ void Server::_acceptClient()
 	client_info.fd = accept(_listeningSocket,
 							(struct sockaddr *)&client_info.addr,
 							&client_info.addrLen);
-	fcntl(client_info.fd, F_SETFL, O_NONBLOCK);
-	if (client_info.fd == -1)
-		perror("accept");
+	if (client_info.fd == -1 || fcntl(client_info.fd, F_SETFL, O_NONBLOCK) == -1)
+	{
+		perror("FATAL: ");
+		throw std::exception();
+	}
 	else if (client_info.fd)
 	{
 		if (_usersMap.size() >= MAX_CLIENTS)
 		{
-			send(client_info.fd, "ERROR: Server is full. Please try again later.\r\n", 49, 0);
+			std::string const errormsg = "ERROR: Server is full. Please try again later.\r\n";
+			send(client_info.fd, errormsg.c_str(), 49, 0);
+			std:: cout << "<< " << errormsg;
 			return ;
 		}
 		User *newUser = new User;
@@ -130,9 +138,14 @@ void Server::_executeCommands(User *user)
 		std::string input = user->extractInput();
 		if (input.empty())
 			break ;
-		std::cout << ">> " << input << std::endl;
-		Command cmd(input);
-		CommandExecution::execute(user, this, cmd);
+		std::cout << ">> " << input;
+		if (!user->isRestricted())
+		{
+			Command cmd(input);
+			CommandExecution::execute(user, this, cmd);
+		}
+		else
+			user->addToSendBuffer(ERR_RESTRICTED(_name));
 	}
 }
 
@@ -151,11 +164,11 @@ void Server::_sendMessage(int fd, User *currentUser)
 		if (!msg.empty())
 		{
 			int bytes = send(fd, msg.c_str(), msg.size(), 0);
-			std::cout << "<< " << msg.substr(0, bytes) << std::endl;
+			std::cout << "<< " << msg.substr(0, bytes);
 			if (bytes == -1)
 			{
-				perror("FATAL send: ");
-				exit(1);
+				perror("FATAL: ");
+				throw std::exception();
 			}
 			if (static_cast<size_t>(bytes) < msg.size())
 			{
@@ -185,37 +198,40 @@ void Server::_connectionError(int fd, User *currentUser)
 }
 
 void Server::_runServer()
-{    	
-	nfds_t numFds = static_cast<nfds_t>(_pollfds.size());
-	// int numEvents = poll(&(_pollfds[0]), numFds, 0);
-	if (poll(&(_pollfds[0]), numFds, 0) == -1)
+{
+	while (loop)
 	{
-		perror("FATAL poll: ");
-		exit(1);
-	}
-	size_t i = 0;
-    while (i < _pollfds.size())
-	{
-		User *currentUser = _getUserByFd(_pollfds[i].fd);
-		if (_pollfds[i].revents & POLLIN)
+		nfds_t numFds = static_cast<nfds_t>(_pollfds.size());
+		// int numEvents = poll(&(_pollfds[0]), numFds, 0);
+		if (poll(&(_pollfds[0]), numFds, 0) == -1)
 		{
-			if (_pollfds[i].fd == _listeningSocket) 
-				_acceptClient();
-			else
-			{
-				_receiveMessage(i);
-				_executeCommands(currentUser);
-			}
+			perror("FATAL: ");
+			throw std::exception();
 		}
-		else if (_pollfds[i].revents & POLLOUT)
-			_sendMessage(_pollfds[i].fd, currentUser);
-		else if (_pollfds[i].revents & (POLLNVAL | POLLERR | POLLHUP))
-			_connectionError(_pollfds[i].fd, currentUser);
-		// checking if ping interval timer has gone over 60 secs
-		time_t currentTime = time(0);
-		if (currentTime - _pingIntervalTimer >= 60)
-			_pingUsers();
-		i++;
+		size_t i = 0;
+		while (i < _pollfds.size())
+		{
+			User *currentUser = _getUserByFd(_pollfds[i].fd);
+			if (_pollfds[i].revents & POLLIN)
+			{
+				if (_pollfds[i].fd == _listeningSocket) 
+					_acceptClient();
+				else
+				{
+					_receiveMessage(i, currentUser);
+					_executeCommands(currentUser);
+				}
+			}
+			else if (_pollfds[i].revents & POLLOUT)
+				_sendMessage(_pollfds[i].fd, currentUser);
+			else if (_pollfds[i].revents & (POLLNVAL | POLLERR | POLLHUP))
+				_connectionError(_pollfds[i].fd, currentUser);
+			// checking if ping interval timer has gone over 60 secs
+			time_t currentTime = time(0);
+			if (currentTime - _pingIntervalTimer >= 60)
+				_pingUsers();
+			i++;
+		}
 	}
 }
 
@@ -234,9 +250,15 @@ void Server::_bindSocket()
     _serverAddr.sin_port = htons(_port);
     _serverAddr.sin_addr.s_addr = INADDR_ANY;
     if (bind(_listeningSocket, (struct sockaddr *)&_serverAddr, sizeof(_serverAddr)) == -1)
-        throw std::exception();
+    {
+		perror("FATAL: ");
+		throw std::exception();
+	}
     if (listen(_listeningSocket, MAX_CLIENTS) == -1)  // mark the socket as listening and set a max connections (backlog)
-        throw std::exception();
+    {
+		perror("FATAL: ");
+		throw std::exception();
+	}
 	_host = inet_ntoa( _serverAddr.sin_addr);
 }
 
@@ -244,9 +266,15 @@ void Server::_createSocket()
 {
 	_listeningSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_listeningSocket == -1)
-        throw std::exception();
+	{
+		perror("FATAL: ");
+		throw std::exception();
+	}
 	if (fcntl(_listeningSocket, F_SETFL, O_NONBLOCK) == -1)
-        throw std::exception();
+    {
+		perror("FATAL: ");
+		throw std::exception();
+	}
 }
 
 void Server::_addPollFd(int fd)
@@ -409,4 +437,15 @@ void Server::_pingUsers()
 			it++;
 	}
 	_sendPingToUsers();
+}
+
+void Server::deleteChannel(Channel *channel)
+{
+	std::map<std::string, Channel *>::iterator it = _channelMap.find(channel->getChannelName());
+	if (it != _channelMap.end())
+	{
+		if (it->second)
+			delete it->second;
+		_channelMap.erase(it);
+	}
 }

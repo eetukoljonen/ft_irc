@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 13:34:20 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/09 13:59:07 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/08 14:47:16 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ private:
 	void									_createSocket();
 	void									_addPollFd(int fd);
 	void									_acceptClient();
-	void									_receiveMessage(int index);
+	void									_receiveMessage(int index, User *currentUser);
 	User									*_getUserByFd(const int fd);
 	void									_broadcastServer(std::string const &msg);
 	void									_pingUsers();
@@ -87,3 +87,5 @@ private:
 	Server(Server const &cpy);
 	Server									&operator=(Server const &rhs);
 };
+
+#endif

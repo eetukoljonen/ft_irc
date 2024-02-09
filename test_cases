@@ -38,15 +38,13 @@
 /mode #channelname +o another_user
 /mode #channelname +l 10
 
+-Edgecases
+
 /nick collisionTest
 /kick #testChannel user1 Reason1
 /kick #testChannel user2 Reason2
+
 /msg #testChannel
 /quit Goodbye!
 
-
-
-
-testing:
-
--check when pw wrong that the nick who tried to connect is removed.
+todo:

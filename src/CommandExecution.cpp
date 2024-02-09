@@ -3,15 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/09 13:58:22 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/09 13:56:52 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "CommandExecution.hpp"
-#include "Replies.hpp"
+#include "../headers/CommandExecution.hpp"
+#include "../headers/Replies.hpp"
 
 User *CommandExecution::_user;
 Server *CommandExecution::_server;
@@ -34,7 +34,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 	_server = server;
 	_user = user;
 	_command = command;
-	std::string	Cmds[17] = 
+	std::string	Cmds[16] = 
 	{
 		"JOIN",
 		"NICK",
@@ -42,7 +42,6 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		"PASS",
 		"CAP",
 		"MOTD",
-		"KILL",
 		"MODE",
 		"KICK",
 		"PING",
@@ -56,8 +55,8 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
     };
     
     int i = 0;
-	std::string commandStr = command.getCommand();
-    while (i < 17)
+	std::string const &commandStr = command.getCommand();
+    while (i < 16)
     {
         if (!commandStr.compare(Cmds[i]))
             break;
@@ -71,17 +70,16 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 3: _pass(); break;
 		case 4: break ; //_cap(); break;
 		case 5: _motd(); break;
-		case 6: _kill(); break;
-		case 7: _mode(); break;
-		case 8: _kick(); break;
-		case 9: _ping(); break;
-		case 10: _pong(); break;
-		case 11: _invite(); break;
-		case 12: _privmsg(); break;
-		case 13: _quit(); break;
-		case 14: _topic(); break;
-		case 15: _part(); break;
-		case 16: _who(); break;
+		case 6: _mode(); break;
+		case 7: _kick(); break;
+		case 8: _ping(); break;
+		case 9: _pong(); break;
+		case 10: _invite(); break;
+		case 11: _privmsg(); break;
+		case 12: _quit(); break;
+		case 13: _topic(); break;
+		case 14: _part(); break;
+		case 15: _who(); break;
 		default: _user->addToSendBuffer(ERR_UNKNOWNCOMMAND(_server->getName(), _user->getNick(), _command.getCommand())); break;
 	}
 }
@@ -147,10 +145,10 @@ void CommandExecution::_join()
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "JOIN"));
 		return ;
 	}
-	std::vector<std::string> const &channelNames = split(params[0], ',');
+	std::vector<std::string> const &channelNames = split(params[0], ',', false);
 	std::vector<std::string> channelKeys;
 	if (paramSize >= 2)
-		channelKeys = split(params[1], ',');
+		channelKeys = split(params[1], ',', false);
 	size_t channelCount = channelNames.size();
 	size_t keyCount = channelKeys.size();
 	if (keyCount > channelCount)
@@ -591,6 +589,7 @@ void CommandExecution::_pass()
 			&& _command.getParams()[0].compare(_server->getPass()))
 	{
 		_user->addToSendBuffer(ERR_PASSWDMISMATCH(_server->getName(), _user->getNick()));
+		_user->restrictUser();
 		return ;
 	}
 	_user->setPassFlag(true);
@@ -599,36 +598,6 @@ void CommandExecution::_pass()
 		_user->setRegistrationFlag(true);
 		_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
 		_motd();
-	}
-}
-
-void    CommandExecution::_kill()
-{
-    User *target;
-	std::string reason;
-
-	if (!_command.getParams().empty())
-	{
-		target = _server->_findUserByNick(_command.getParams()[0]);
-		if (target == nullptr)
-		{
-			_user->addToSendBuffer(ERR_NOSUCHNICK(_server->getName(), _user->getUser(), _command.getParams()[0]));
-			return ;
-		}
-		else
-		{	
-			if (_command.getParams().size() > 1 && !_command.getParams()[1].empty())
-			{
-				if (!_command.getParams()[1].compare(":"))
-					reason = ": default";
-				else
-					reason = _command.getParams()[1];
-			}
-			std::string msg = RPL_KILL(_server->getName(), target->getNick(), reason);
-			if (send(target->getUserInfo().fd, msg.c_str(), msg.size(), 0) < 0)
-				std::cout << "failed to send msg to" << target->getNick() << std::endl;
-			_server->deleteUser(target->getUserInfo().fd);
-		}
 	}
 }
 
@@ -649,48 +618,50 @@ void	CommandExecution::_kick()
     	_user->addToSendBuffer(ERR_NEEDMOREPARAMS(serverName, kickerNick, command));
     	return;
 	}
-	std::string const &channelName = _command.getParams()[0];
-	std::string const &targetUser = _command.getParams()[1];
-	Channel *channel = _server->getChannelByName(&channelName[1]);
-	// User *target = channel->getUser(targetUser);
-	std::string reason;
-	/* Check channel exists */
-	if (channel == nullptr || !isValidChannelName(channelName))
+	std::vector<std::string> channelNames = split(_command.getParams()[0], ',', false);
+	std::vector<std::string> targetUsers = split(_command.getParams()[1], ',', false);
+	for (const std::string &channelName : channelNames)
 	{
-		_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, channelName));
-		return ;
+		Channel *channel = _server->getChannelByName(&channelName[1]);
+		/* Check channel exists */
+		if (channel == nullptr || !isValidChannelName(channelName))
+		{
+			_user->addToSendBuffer(ERR_NOSUCHCHANNEL(serverName, userName, channelName));
+		}
+		else if (!channel->isOperator(kickerNick))
+		{
+			_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(serverName, kickerNick, channelName));
+		}
+		/* Check that kicker is on channel */
+		else if (!channel->UserOnChannel(kickerNick))
+		{
+			_user->addToSendBuffer(ERR_NOTONCHANNEL(serverName, userName, channelName));
+		}
+		else
+		{
+			for (const std::string &targetUser : targetUsers)
+			{
+				/* Check that kicked is on channel */
+				if (!channel->UserOnChannel(targetUser))
+				{
+					_user->addToSendBuffer(ERR_USERNOTONCHANNEL(serverName, kickerNick, targetUser, channelName));
+					break ;
+				}
+				std::string reason;
+				if (_command.getParams().size() > 2 && _command.getParams()[2].compare(":"))
+					reason = _command.getParams()[2];
+				else
+					reason = "default";
+				channel->broadcastToChannel(RPL_KICKBROADCAST(user_id(kickerNick, userName, _user->getIP()), channelName, targetUser, reason));
+				channel->removeFromChannel(targetUser);
+				_user->removeChannel(channel);
+				if (channel->getUserCount() <= 0)
+					_server->deleteChannel(channel);
+			}
+			
+		}
+			
 	}
-		/* Check user privileges */
-	if (!channel->isOperator(kickerNick))
-	{
-		_user->addToSendBuffer(ERR_CHANOPRIVSNEEDED(serverName, channelName, channelName));
-		return ;
-	}
-	/* Check that kicker is on channel */
-	if (!channel->UserOnChannel(kickerNick))
-	{
-		_user->addToSendBuffer(ERR_NOTONCHANNEL(serverName, userName, channelName));
-		return ;
-	}
-	/* Check that kicked is on channel */
-	if (!channel->UserOnChannel(targetUser))
-	{
-		_user->addToSendBuffer(ERR_USERNOTONCHANNEL(serverName, kickerNick, targetUser, channelName));
-		return ;
-	}
-	if (_command.getParams().size() > 2 && _command.getParams()[2].compare(":"))
-		reason = _command.getParams()[2];
-	else
-		reason = "default";
-	// std::string const &msg = RPL_KICKEDCLIENT(serverName, kickerNick, \
-	// 									channelName, target->getNick(), reason);
-	// if (send(target->getUserInfo().fd, msg.c_str(), msg.size(), 0) < 0)
-   	// 	std::cerr << "Error sending message: " << strerror(errno) << std::endl;
-	channel->broadcastToChannel(RPL_KICKBROADCAST(user_id(kickerNick, userName, _user->getIP()), &channelName[1], targetUser, reason));
-	channel->removeFromChannel(targetUser);
-	_user->removeChannel(channel);
-	if (channel->getUserCount() <= 0)
-		_server->deleteChannel(channel);
 }
 
 void	CommandExecution::_invite()
@@ -808,7 +779,7 @@ void CommandExecution::_privmsg()
 		_user->addToInputBuffer(ERR_NOTEXTTOSEND(userNick));
 	}
 
-	std::vector<std::string> receivers = split(_command.getParams()[0], ',');
+	std::vector<std::string> receivers = split(_command.getParams()[0], ',', false);
 	for (const std::string &receiver : receivers)
 	{
 		if (!receivers.empty() && isValidChannelName(receiver))
@@ -844,19 +815,20 @@ void CommandExecution::_quit()
 	if (!_usersChannels.empty())
 	{
 		std::vector<Channel *>::iterator	it				= _usersChannels.begin();
-		std::vector<Channel *>::iterator	ite				= _usersChannels.end();
 		std::string msg = ":leaving";
 		if (!_command.getParams().empty())
 			msg	= _command.getParams().at(0);
 		std::string const					&nick			= _user->getNick();
 		std::string const					&user			= _user->getUser();
 		std::string const					&userIP			= _user->getIP();
-		while (it != ite)
+		while (it != _usersChannels.end())
 		{
 			Channel *channel = *it;
+			it++;
 			channel->removeFromChannel(nick);
 			channel->broadcastToChannel(QUIT(user_id(nick, user, userIP), msg));
-			it++;
+			if (channel->getUserCount() <= 0)
+				_server->deleteChannel(channel);
 		}
 	}
 	_server->deleteUser(_user->getUserInfo().fd);
@@ -923,7 +895,7 @@ void CommandExecution::_part()
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "PART"));
 		return ;
 	}
-	std::vector<std::string> const &channelNames = split(params[0], ',');
+	std::vector<std::string> const &channelNames = split(params[0], ',', false);
 	std::vector<std::string> partMessages;
 	if (paramSize > 1)
 		partMessages = std::vector<std::string>(params.begin() + 1, params.end());
