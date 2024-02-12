@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/12 12:24:23 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/12 17:32:26 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,11 +44,14 @@ Server::~Server()
 			delete channelIt->second;
 		channelIt++;
 	}
-	for (size_t i = _pollfds.size() - 1; i > 0; i--)
+	if (_pollfds.size() >= 0)
 	{
-		if (_pollfds[i].fd != _listeningSocket)
-			send(_pollfds[i].fd, "SocSyncServ closed. Thank you, come again!\r\n", 45, 0);
-		close(_pollfds[i].fd);
+		for (size_t i = _pollfds.size() - 1; i > -1; i--)
+		{
+			if (_pollfds[i].fd != _listeningSocket)
+				send(_pollfds[i].fd, "SocSyncServ closed. Thank you, come again!\r\n", 45, 0);
+			close(_pollfds[i].fd);
+		}
 	}
 }
 

@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/12 12:03:15 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/12 17:33:03 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -468,7 +468,7 @@ void CommandExecution::_addChannelModes(Channel *channel, std::string const &mod
 				catch(const std::exception& e){paramIndex++; break ;}
 				if (userLimit != channel->getUserLimit())
 				{
-					modeSTR += "o";
+					modeSTR += "l";
 					if (!paramSTR.empty())
 						paramSTR += " ";
 					paramSTR += std::to_string(userLimit);
