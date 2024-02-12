@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandExecution.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/09 16:54:56 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/12 12:03:15 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 	_server = server;
 	_user = user;
 	_command = command;
-	std::string	Cmds[16] = 
+	std::string	Cmds[17] = 
 	{
 		"JOIN",
 		"NICK",
@@ -51,12 +51,13 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		"QUIT",
 		"TOPIC",
 		"PART",
-		"WHO"
+		"WHO",
+		"WHOIS"
     };
     
     int i = 0;
 	std::string const &commandStr = command.getCommand();
-    while (i < 16)
+    while (i < 17)
     {
         if (!commandStr.compare(Cmds[i]))
             break;
@@ -68,7 +69,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 1: _nick(); break;
 		case 2: _userF(); break;
 		case 3: _pass(); break;
-		case 4: break ; //_cap(); break to ignore 
+		case 4: break ; // cap break to ignore 
 		case 5: _motd(); break;
 		case 6: _mode(); break;
 		case 7: _kick(); break;
@@ -80,6 +81,7 @@ void CommandExecution::execute(User	*user, Server *server, Command &command)
 		case 13: _topic(); break;
 		case 14: _part(); break;
 		case 15: _who(); break;
+		case 16: break; // whois break to ignore
 		default: _user->addToSendBuffer(ERR_UNKNOWNCOMMAND(_server->getName(), _user->getNick(), _command.getCommand())); break;
 	}
 }
@@ -90,8 +92,8 @@ void CommandExecution::_joinSucces(Channel *channel)
 	channel->broadcastToChannel(RPL_JOIN(user_id(_user->getNick(), _user->getUser(), _user->getIP()), "JOIN", "#" + channel->getChannelName()));
 	std::string const &topic = channel->getTopic();
 	if (!topic.empty())
-		_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), channel->getChannelName(), channel->getTopic()));
-	_user->addToSendBuffer(RPL_NAMES(_server->getName(), channel->getChannelName(), channel->getNickList(),  _user->getNick()));
+		_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), "#" + channel->getChannelName(), channel->getTopic()));
+	_user->addToSendBuffer(RPL_NAMES(_server->getName(), "#" + channel->getChannelName(), channel->getNickList(),  _user->getNick()));
 	_user->addToSendBuffer(RPL_ENDOFNAMES(_server->getName(), "#" + channel->getChannelName(), _user->getNick()));
 	_user->addNewChannel(channel);
 }
@@ -123,8 +125,7 @@ bool isValidChannelName(std::string const &channelName)
 {
 	if (channelName.empty() || channelName.size() >= 50)
 		return (false);
-	if (channelName.at(0) != '#' && channelName.at(0) != '&'
-		&& channelName.at(0) != '!' && channelName.at(0) != '+')
+	if (channelName.at(0) != '#')
 		return (false);
 	if (!checkIrcPattern(&channelName[1]))
 		return (false);
@@ -371,7 +372,7 @@ void CommandExecution::_removeChannelModes(Channel *channel, std::string const &
 			{
 				modeSTR += "l";
 				channel->removeChannelMode(MODE_l);
-				channel->setUserLimit(32);
+				channel->setUserLimit(MAX_CLIENTS);
 			}
 			break ;
 		case 't':
@@ -579,7 +580,7 @@ void CommandExecution::_mode()
 		_user->addToSendBuffer(ERR_NEEDMOREPARAMS(_server->getName(), _user->getNick(), "MODE"));
 		return ;
 	}
-	if (cmdParams.at(0)[0] != '#' && cmdParams.at(0)[0] != '&' && cmdParams.at(0)[0] != '!' && cmdParams.at(0)[0] != '+')
+	if (cmdParams.at(0)[0] != '#')
 		_userMode();
 	else
 		_channelMode();
@@ -606,12 +607,6 @@ void CommandExecution::_pass()
 		return ;
 	}
 	_user->setPassFlag(true);
-	// if (!_user->isRegistered() && !_user->getNick().empty() && !_user->getUser().empty())
-	// {
-	// 	_user->setRegistrationFlag(true);
-	// 	_user->addToSendBuffer(RPL_WELCOME(_server->getName(), user_id(_user->getNick(), _user->getUser(), _user->getIP()), _user->getNick()));
-	// 	_motd();
-	// }
 }
 
 void	CommandExecution::_kick()

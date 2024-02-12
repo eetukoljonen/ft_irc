@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/09 15:12:47 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/12 11:56:30 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <map>
 #include <vector>
 #include "User.hpp"
+#include "Server.hpp"
 
 class Channel
 {

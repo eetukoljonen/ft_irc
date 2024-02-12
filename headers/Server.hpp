@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 13:34:20 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/09 16:55:38 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/12 11:37:43 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,7 @@ private:
 	void									_broadcastServer(std::string const &msg);
 	void									_pingUsers();
 	void									_sendPingToUsers();
-	void									_killUser(User *currentUser, std::string const &reason);
+	void									_killUser(int fd, User *currentUser, std::string const &reason);
 	void									_printStart();
 	
 	Server(Server const &cpy);

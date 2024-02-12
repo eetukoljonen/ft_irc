@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/09 16:57:41 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/12 12:04:07 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,8 +52,11 @@ bool loop = true;
 
 static void	signal_handler(int signal)
 {
-	(void)signal;
-	loop = false;
+	if (signal == SIGINT)
+	{
+		std::cout << PURPLE << "SocSyncServ closed. Thank you, come again!" << RESET << std::endl;
+		loop = false;
+	}
 }
 
 void Server::_printStart()
@@ -146,8 +149,9 @@ void Server::_acceptClient()
 		if (_usersMap.size() >= MAX_CLIENTS)
 		{
 			std::string const errormsg = "ERROR: Server is full. Please try again later.\r\n";
-			send(client_info.fd, errormsg.c_str(), 49, 0);
-			std:: cout << RED <<  "<< " << errormsg << RESET;
+			// send(client_info.fd, errormsg.c_str(), 49, 0);
+			// std:: cout << RED <<  "<< " << errormsg << RESET;
+			_killUser(client_info.fd, nullptr, errormsg);
 			return ;
 		}
 		User *newUser = new User;
@@ -177,11 +181,11 @@ void Server::_executeCommands(User *user)
 	}
 }
 
-void Server::_killUser(User *currentUser, std::string const &reason)
+void Server::_killUser(int fd, User *currentUser, std::string const &reason)
 {
-	send(currentUser->getUserInfo().fd, reason.c_str(), reason.size(), 0);
+	send(fd, reason.c_str(), reason.size(), 0);
 	std::cout << RED <<  "<< " << reason << RESET;
-	deleteUser(currentUser->getUserInfo().fd);
+	_connectionError(fd, currentUser);
 }
 
 void Server::_sendMessage(int fd, User *currentUser)
@@ -213,7 +217,7 @@ void Server::_sendMessage(int fd, User *currentUser)
 		}
 		if (currentUser->isRestricted())
 		{
-			_killUser(currentUser, ERROR(currentUser->getNick(), _name, "Connection restricted"));
+			_killUser(fd, currentUser, ERROR(currentUser->getNick(), _name, "Connection restricted"));
 			return ;
 		}
 	}
@@ -221,17 +225,22 @@ void Server::_sendMessage(int fd, User *currentUser)
 
 void Server::_connectionError(int fd, User *currentUser)
 {
-	std::vector<Channel *> userChannels = currentUser->getChannels();
-	if (!userChannels.empty())
+	if (currentUser)
 	{
-		std::vector<Channel *>::iterator it = userChannels.begin();
-		std::vector<Channel *>::iterator ite = userChannels.end();
-		while (it != ite)
+		std::vector<Channel *> userChannels = currentUser->getChannels();
+		if (!userChannels.empty())
 		{
-			Channel *channel = *it;
-			channel->removeFromChannel(currentUser->getNick());
-			channel->broadcastToChannel(QUIT(user_id(currentUser->getNick(), currentUser->getUser(), currentUser->getIP()), ":connection lost"));
-			it++;
+			std::vector<Channel *>::iterator it = userChannels.begin();
+			std::vector<Channel *>::iterator ite = userChannels.end();
+			while (it != ite)
+			{
+				Channel *channel = *it;
+				channel->removeFromChannel(currentUser->getNick());
+				channel->broadcastToChannel(QUIT(user_id(currentUser->getNick(), currentUser->getUser(), currentUser->getIP()), ":connection lost"));
+				it++;
+				if (channel->getUserCount() <= 0)
+					deleteChannel(channel);
+			}
 		}
 	}
 	deleteUser(fd);
@@ -346,7 +355,7 @@ User *Server::_findUserByNick(std::string const &nick) const
 			return it->second;
 		it++;
 	}
-	return nullptr;
+	return (nullptr);
 }
 
 User *Server::_findUserByUsername(std::string const &username) const
@@ -401,7 +410,6 @@ void Server::deleteUser(int fd)
 	auto it_poll = findPollStructByFd(fd);
 	if (it_map != _usersMap.end() || it_poll != _pollfds.end()) 
 	{
-		close(fd);
 		if (it_map != _usersMap.end())
 		{
 			if (it_map->second)
@@ -411,6 +419,7 @@ void Server::deleteUser(int fd)
 		if (it_poll != _pollfds.end())
 			_pollfds.erase(it_poll);
 	}
+	close(fd);
 }
 
 Channel *Server::createChannel(std::string const &name)
@@ -465,10 +474,8 @@ void Server::_pingUsers()
 		{
 			User *user = it->second;
 			std::string const &errorMsg = ERROR(user->getNick(), _name, "Ping timeout");
-			std::cout << RED << "<< " << errorMsg << RESET << std::endl;
-			send(user->getUserInfo().fd, errorMsg.c_str(), errorMsg.size(), 0);
 			++it;
-			deleteUser(user->getUserInfo().fd);
+			_killUser(user->getUserInfo().fd , user, errorMsg);
 		}
 		else
 			it++;

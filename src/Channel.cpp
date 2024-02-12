@@ -6,13 +6,13 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/08 15:11:30 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/12 11:29:35 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../headers/Channel.hpp"
 
-Channel::Channel() : _userLimit(32), _modes(0) {}
+Channel::Channel() : _userLimit(MAX_CLIENTS), _modes(0) {}
 
 Channel::Channel(Channel const &cpy)
 {
