@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   User.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/08 15:02:47 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/09 16:39:25 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/13 12:00:05 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,9 +72,9 @@ void appendInput(std::vector<std::string> &buf, std::string const &str)
 		buf.push_back(str);
 }
 
-void User::addToInputBufferFront(std::string const &input)
+void User::addToSendBufferFront(std::string const &input)
 {
-	_userInput.insert(_userInput.begin(), input);
+	_sendBuffer.insert(_sendBuffer.begin(), input);
 }
 
 void User::addToInputBuffer(std::string msg)

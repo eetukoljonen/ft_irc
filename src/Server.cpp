@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2024/02/12 17:32:26 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/13 12:00:22 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,8 +156,6 @@ void Server::_acceptClient()
 		if (_usersMap.size() >= MAX_CLIENTS)
 		{
 			std::string const errormsg = "ERROR: Server is full. Please try again later.\r\n";
-			// send(client_info.fd, errormsg.c_str(), 49, 0);
-			// std:: cout << RED <<  "<< " << errormsg << RESET;
 			_killUser(client_info.fd, nullptr, errormsg);
 			return ;
 		}
@@ -219,7 +217,7 @@ void Server::_sendMessage(int fd, User *currentUser)
 			if (static_cast<size_t>(bytes) < msg.size())
 			{
 				msg = msg.substr(0, bytes);
-				currentUser->addToInputBufferFront(msg);
+				currentUser->addToSendBufferFront(msg);
 			}
 		}
 		if (currentUser->isRestricted())
