@@ -1,7 +1,9 @@
 # ft_irc - Internet Relay Chat Server
 
 ## Overview
-`ft_irc` is a comprehensive educational project designed as part of the School 42 (Hive Helsinki) curriculum. It focuses on the creation and operation of an IRC (Internet Relay Chat) server, allowing real-time text-based communication over the internet (amaizing I know).  This involves understanding and implementing various aspects of network programming in C++, including non-blocking I/O operations, handling TCP/IP (IPv4 in our case) communication, and ensuring robust error handling. The server supports key IRC features such as user authentication, nickname and username setting, joining channels, sending private messages, and channel operations (e.g., KICK, INVITE, TOPIC, MODE).
+`ft_irc` is a comprehensive educational project designed as part of the School 42 (Hive Helsinki) curriculum. It focuses on the creation and operation of an IRC (Internet Relay Chat) server, allowing real-time text-based communication over the internet (amaizing I know). 
+
+This involves understanding and implementing various aspects of network programming in C++, including non-blocking I/O operations, handling TCP/IP (IPv4 in our case) communication, and ensuring robust error handling. The server supports key IRC features such as user authentication, nickname and username setting, joining channels, sending private messages, and channel operations (e.g., KICK, INVITE, TOPIC, MODE).
 
 ## Commands
 
@@ -24,12 +26,26 @@
 
 ## Prerequisites
 
-Before starting on the `ft_irc` project, you should have the following installed on your development environment:
-
 - gcc (GNU Compiler Collection)
 - make
 
 ## Installation
-``` git clone 
+```
+git clone https://github.com/AxelBadam/ft_irc.git
+```
+```
+cd ft_irc
+```
+```
+make
+```
+At this point you might want to install [Irssi](https://irssi.org/) or some other client in order to connect to our server.
+
+## Running the server
+
+```
+./ircserv <port> <password>
+```
+
 
 
