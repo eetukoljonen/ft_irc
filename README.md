@@ -47,5 +47,8 @@ At this point you might want to install [Irssi](https://irssi.org/) or some othe
 ./ircserv <port> <password>
 ```
 
+![Screenshot 2024-02-13 at 12 10 13](https://github.com/AxelBadam/ft_irc/assets/120648288/b0f99211-ec9b-422c-b6cd-29494a1d555a)
+
+![ircgif](https://github.com/AxelBadam/ft_irc/assets/120648288/e45100fa-5b14-459d-83c4-20a310f57237)
 
 
