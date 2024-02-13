@@ -85,3 +85,7 @@
 # define RPL_ENDOFWHO(servername, client, target) (":" + servername + " 315 " + client + " " + target + " :End of /WHO list.\r\n")
 # define RPL_ENDOFBANLIST(servername, client, target) (":" + servername + " 368 " + client + " " + target + " :End of Channel Ban List\r\n")
 # define ERR_RESTRICTED(servername) (":" + servername + " 484 * :Your connection is restricted!\r\n")
+
+/* TOPIC */
+
+# define TOPIC(user_id, channel, topic) (user_id + " TOPIC " + channel + " :" + topic + "\r\n")

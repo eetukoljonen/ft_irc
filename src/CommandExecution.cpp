@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/18 15:29:04 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/12 17:33:03 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/13 14:28:39 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -883,10 +883,7 @@ void CommandExecution::_topic()
 		channel->clearTopic();
 	else
 		channel->setTopic(topic);
-	if (channel->getTopic().empty())
-		_user->addToSendBuffer(RPL_NOTOPIC(_server->getName(), _user->getNick(), channelName));
-	else
-		_user->addToSendBuffer(RPL_TOPIC(_server->getName(), _user->getNick(), channelName, channel->getTopic()));
+	channel->broadcastToChannel(TOPIC(user_id(_user->getNick(), _user->getUser(), _user->getIP()), "#" + channel->getChannelName(), topic));
 }
 
 void CommandExecution::_part()
