@@ -1,4 +1,5 @@
 # ft_irc - Internet Relay Chat Server
+![Screenshot 2024-02-13 at 12 10 13](https://github.com/AxelBadam/ft_irc/assets/120648288/b0f99211-ec9b-422c-b6cd-29494a1d555a)
 
 ## Overview
 `ft_irc` is a comprehensive educational project designed as part of the School 42 (Hive Helsinki) curriculum. It focuses on the creation and operation of an IRC (Internet Relay Chat) server, allowing real-time text-based communication over the internet (amaizing I know). 
@@ -47,7 +48,6 @@ At this point you might want to install [Irssi](https://irssi.org/) or some othe
 ./ircserv <port> <password>
 ```
 
-![Screenshot 2024-02-13 at 12 10 13](https://github.com/AxelBadam/ft_irc/assets/120648288/b0f99211-ec9b-422c-b6cd-29494a1d555a)
 
 ![ircgif](https://github.com/AxelBadam/ft_irc/assets/120648288/e45100fa-5b14-459d-83c4-20a310f57237)
 
