@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:28 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/26 16:16:48 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/12 11:29:35 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Channel.hpp"
+#include "../headers/Channel.hpp"
 
-Channel::Channel() : _inviteOnly(false), _userLimit(100) {}
+Channel::Channel() : _userLimit(MAX_CLIENTS), _modes(0) {}
 
 Channel::Channel(Channel const &cpy)
 {
@@ -20,12 +20,9 @@ Channel::Channel(Channel const &cpy)
 	_invitedUsers = cpy._invitedUsers;
 	_kickedUsers = cpy._kickedUsers;
 	_operators = cpy._operators;
-	_inviteOnly = cpy._inviteOnly;
 	_userLimit = cpy._userLimit;
 	_topic = cpy._topic;
-	_inviteOnly = cpy._inviteOnly;
-	_userLimit = cpy._userLimit;
-	_topic = cpy._topic;
+	_modes = cpy._modes;
 }
 
 Channel::~Channel(){}
@@ -38,12 +35,9 @@ Channel &Channel::operator=(Channel const &rhs)
 		_invitedUsers = rhs._invitedUsers;
 		_kickedUsers = rhs._kickedUsers;
 		_operators = rhs._operators;
-		_inviteOnly = rhs._inviteOnly;
 		_userLimit = rhs._userLimit;
 		_topic = rhs._topic;
-		_inviteOnly = rhs._inviteOnly;
-		_userLimit = rhs._userLimit;
-		_topic = rhs._topic;
+		_modes = rhs._modes;
     }
     return (*this);
 }
@@ -73,9 +67,6 @@ void Channel::addToChannel(User *user)
 {
 	std::string const &nick = user->getNick();
 	_users[nick] = user;
-	if (!_nickList.empty())
-		_nickList.append(" ");
-	_nickList.append(nick);
 }
 
 void Channel::addToOperators(std::string const &nick)
@@ -91,11 +82,6 @@ void Channel::addToInviteList(std::string const &nick)
 void Channel::addToKickList(std::string const &nick)
 {
 	_kickedUsers.push_back(nick);
-}
-
-bool Channel::isInviteOnly()
-{
-	return _inviteOnly;
 }
 
 void Channel::setChannelName(std::string const &name)
@@ -118,9 +104,22 @@ std::string const &Channel::getChannelkey() const
 	return (_channelKey);
 }
 
-std::string const &Channel::getNickList() const
+std::string Channel::getNickList()
 {
-	return (_nickList);
+	std::string nicklist;
+	std::map<std::string, User *>::const_iterator it = _users.cbegin();
+	std::map<std::string, User *>::const_iterator ite = _users.cend();
+	while (it != ite)
+	{
+		if (!nicklist.empty())
+			nicklist += " ";
+		if (isOperator(it->first))
+			nicklist +=  "@" + it->first;
+		else
+			nicklist += it->first;
+		it++;
+	}
+	return (nicklist);
 }
 
 std::string const &Channel::getTopic() const
@@ -136,11 +135,6 @@ int const &Channel::getUserLimit() const
 int Channel::getUserCount() const
 {
 	return (_users.size());
-}
-
-void Channel::setInviteOnly(bool const &flag)
-{
-	_inviteOnly = flag;
 }
 
 bool Channel::UserOnChannel(std::string const &nick)
@@ -164,14 +158,28 @@ std::map<std::string, User *>	&Channel::getUsersMap()
 	return _users;
 }
 
-void Channel::broadcastToChannel(std::string const & msg) 
+// here we send the msg to everyone on the channel except the ignoredUser, usually
+// the ignoredUser will be the sender of the msg, PRIVMSG for example
+void Channel::broadcastToChannel(std::string const &msg, User *ignoredUser) 
 {
-	std::map<std::string, User *> usersMap = getUsersMap();
 	std::map<std::string, User *>::iterator it;
-	
-    for(it = usersMap.begin(); it != usersMap.end(); ++it)
+	if (!_users.empty())
 	{
-        it->second->addToSendBuffer(msg);
+		for(it = _users.begin(); it != _users.end(); ++it)
+		{
+			if (it->second != ignoredUser)
+				it->second->addToSendBuffer(msg);
+		}
+	}
+}
+
+void Channel::broadcastToChannel(std::string const &msg) 
+{
+	std::map<std::string, User *>::iterator it;
+	if (!_users.empty())
+	{
+		for(it = _users.begin(); it != _users.end(); ++it)
+       		it->second->addToSendBuffer(msg);
 	}
 }
 
@@ -180,10 +188,54 @@ void	Channel::removeFromChannel(std::string const &nick)
 	std::map<std::string, User *>::iterator it = _users.find(nick);
 	if (it != _users.end())
 		_users.erase(it);
-	_kickedUsers.push_back(nick);
-	size_t i = _nickList.find(nick);
-	// std::cout << "nicklist bfore = " << _nickList << std::endl;
-	if (i != std::string::npos)
-		_nickList.erase(i, nick.size() + 1);
-	// std::cout << "nicklist after = " << _nickList << std::endl;
+}
+
+void Channel::removeOperatorPrivilages(std::string const &nick)
+{
+	if (isOperator(nick))
+		_operators.erase(std::find(_operators.begin(), _operators.end(), nick));
+}
+
+void Channel::addChannelMode(u_int8_t const &mode)
+{
+	_modes |= mode;
+}
+
+void Channel::removeChannelMode(u_int8_t const &mode)
+{
+	_modes ^= mode;
+}
+u_int8_t const &Channel::getChannelMode() const
+{
+	return (_modes);
+}
+
+void Channel::setUserLimit(int const &limit)
+{
+	_userLimit = limit;
+}
+
+std::string Channel::getChannelModeString()
+{
+	std::string mode;
+	if (_modes & MODE_i)
+		mode += 'i';
+	if (_modes & MODE_t)
+		mode += 't';
+	if (_modes & MODE_k)
+		mode += 'k';
+	if (_modes & MODE_l)
+		mode += 'l';
+	//returning a string with a + in front of it if its not empty
+	return (mode.empty() ? mode : "+" + mode);
+}
+
+void Channel::clearTopic()
+{
+	_topic.clear();
+}
+
+void Channel::setTopic(std::string const &topic)
+{
+	_topic = topic;
 }

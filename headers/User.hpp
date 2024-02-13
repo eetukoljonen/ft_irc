@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/01/26 15:05:53 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/13 12:00:04 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,8 @@
 #include <vector>
 #include <time.h>
 
+class Channel;
+
 typedef struct s_client
 {
 	int							fd;
@@ -44,29 +46,38 @@ public:
     User(User const &cpy);
     ~User();
     User						&operator=(User const &rhs);
-	int							addToInputBuffer(std::string input);
-	std::string const			extractInput();
-	t_client 					&getUserInfo();
-	void						addToSendBuffer(std::string const &msg);
-	std::string const			extractFromSendBuffer();
+	//bools
 	bool const					&isRegistered() const;
-
+	bool const					&isPassCorrect() const;
+	bool const					&isRestricted() const;
+	//getters
 	std::string const			&getNick();
 	std::string const			&getUser();
+	time_t const				&getPingResponseTimer();
+	std::string const			&getUserMode() const;
+	std::string const			&getIP() const;
+	t_client					&getUserInfo();
+	std::string const			extractInput();
+	std::vector<Channel *>		getChannels() const;
+	std::string const			extractFromSendBuffer();
+	std::string const			&getPongResponse() const;
+	//setters
+	void						addToInputBuffer(std::string input);
+	void						addToSendBufferFront(std::string const &input);
+	void						addToSendBuffer(std::string const &msg);
 	void						setNick(std::string const &nick);
 	void						setUser(std::string const &user);
 	void						setRegistrationFlag(bool flag);
-	bool const					&isPassCorrect() const;
 	void						setPassFlag(bool flag);
 	void						removeUserMode(std::string const &mode);
 	void						addUserMode(std::string const &mode);
-	std::string const			&getUserMode() const;
-	std::string const			&getIP() const;
 	void						setIP(std::string const &ip);
 	void						resetPingResponseTimer();
-	time_t const				&getPingResponseTimer();
 	void						setPongResponse(std::string const &msg);
-	std::string const			&getPongResponse() const;
+	void						addNewChannel(Channel *channel);
+	void						setClientInfo(t_client const &info);
+	void						removeChannel(Channel *channel);
+	void						restrictUser();
 private:
 	std::string					_nick;
 	std::string					_user;
@@ -74,11 +85,13 @@ private:
 	t_client					_userInfo;
 	std::vector<std::string>	_userInput;
 	std::vector<std::string>	_sendBuffer;
+	std::vector<Channel *>		_channels;
 	std::string					_userModes;
 	bool						_isRegistered;
 	bool						_passFlag;
 	time_t						_pingResponseTimer;
 	std::string					_pongRespone;
+	bool						_isRestricted;
 };
 
 #endif
