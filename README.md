@@ -39,7 +39,7 @@ cd ft_irc
 ```
 make
 ```
-At this point you might want to install [Irssi](https://irssi.org/) or some other client in order to connect to our server.
+At this point you might want to install [Irssi](https://irssi.org/) or some other IRC client in order to connect to our server.
 
 ## Running the server
 
