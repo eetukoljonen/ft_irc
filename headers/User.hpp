@@ -6,7 +6,7 @@
 /*   By: ekoljone <ekoljone@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 14:39:53 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/09 12:43:30 by ekoljone         ###   ########.fr       */
+/*   Updated: 2024/02/13 12:00:04 by ekoljone         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ public:
 	std::string const			&getPongResponse() const;
 	//setters
 	void						addToInputBuffer(std::string input);
-	void						addToInputBufferFront(std::string const &input);
+	void						addToSendBufferFront(std::string const &input);
 	void						addToSendBuffer(std::string const &msg);
 	void						setNick(std::string const &nick);
 	void						setUser(std::string const &user);

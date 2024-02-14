@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 13:34:20 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/09 17:00:42 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/14 15:26:02 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,7 @@ private:
 	void									_broadcastServer(std::string const &msg);
 	void									_pingUsers();
 	void									_sendPingToUsers();
-	void									_killUser(User *currentUser, std::string const &reason);
+	void									_killUser(int fd, User *currentUser, std::string const &reason);
 	void									_printStart();
 	
 	Server(Server const &cpy);

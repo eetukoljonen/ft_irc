@@ -6,7 +6,7 @@
 /*   By: atuliara <atuliara@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 10:53:25 by ekoljone          #+#    #+#             */
-/*   Updated: 2024/02/09 16:58:35 by atuliara         ###   ########.fr       */
+/*   Updated: 2024/02/14 15:25:42 by atuliara         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <map>
 #include <vector>
 #include "User.hpp"
+#include "Server.hpp"
 
 class Channel
 {
